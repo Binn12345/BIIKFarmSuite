@@ -209,6 +209,29 @@ class FarmRecordCatalog
     {
         abort_unless(isset(self::modules()[$module]), 404);
 
-        return self::modules()[$module];
+        $catalog = self::modules()[$module];
+        $titleKey = 'biik.modules.'.$module.'.title';
+        $descriptionKey = 'biik.modules.'.$module.'.description';
+        if (__($titleKey) !== $titleKey) {
+            $catalog['title'] = __($titleKey);
+        }
+        if (__($descriptionKey) !== $descriptionKey) {
+            $catalog['description'] = __($descriptionKey);
+        }
+        foreach ($catalog['fields'] as $key => &$field) {
+            $labelKey = 'biik.fields.'.$key;
+            if (__($labelKey) !== $labelKey) {
+                $field['label'] = __($labelKey);
+            }
+            foreach ($field['options'] ?? [] as $value => $label) {
+                $optionKey = 'biik.values.'.$value;
+                if (__($optionKey) !== $optionKey) {
+                    $field['options'][$value] = __($optionKey);
+                }
+            }
+        }
+        unset($field);
+
+        return $catalog;
     }
 }

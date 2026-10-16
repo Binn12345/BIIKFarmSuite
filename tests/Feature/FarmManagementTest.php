@@ -7,10 +7,12 @@ use App\Livewire\Farm\FarmRecordIndex;
 use App\Livewire\Farm\FarmReportIndex;
 use App\Livewire\Farm\PenIndex;
 use App\Models\Animal;
+use App\Models\FarmRecord;
 use App\Models\Pen;
 use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Livewire\Livewire;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
@@ -94,6 +96,12 @@ class FarmManagementTest extends TestCase
         ]);
 
         $pen = Pen::create(['name' => 'North pen', 'capacity' => 2, 'status' => 'active']);
+        FarmRecord::create([
+            'module' => 'breeds',
+            'reference' => 'TEST-LARGE-WHITE',
+            'title' => 'Large White',
+            'status' => 'active',
+        ]);
 
         Livewire::actingAs($user)->test(AnimalIndex::class)
             ->call('createAnimal')
@@ -275,7 +283,7 @@ class FarmManagementTest extends TestCase
             ->assertHasNoErrors();
 
         $createSale('SALE-001');
-        $sale = \App\Models\FarmRecord::where('module', 'sales')->firstOrFail();
+        $sale = FarmRecord::where('module', 'sales')->firstOrFail();
         $this->assertSame('450.50', $sale->fresh()->amount);
 
         Livewire::actingAs($user)->test(FarmRecordIndex::class, ['module' => 'sales'])
@@ -294,7 +302,7 @@ class FarmManagementTest extends TestCase
             ->call('saveRecord')
             ->assertHasErrors('form.related_animal_id');
 
-        $secondSale = \App\Models\FarmRecord::create([
+        $secondSale = FarmRecord::create([
             'module' => 'sales',
             'reference' => 'SALE-002',
             'record_date' => now()->toDateString(),
@@ -324,14 +332,14 @@ class FarmManagementTest extends TestCase
             'inventory.view', 'inventory.create', 'inventory.update',
             'purchases.view', 'purchases.create', 'purchases.receive',
         ]);
-        $supplier = \App\Models\FarmRecord::create([
+        $supplier = FarmRecord::create([
             'module' => 'suppliers',
             'title' => 'Feed supplier',
             'status' => 'active',
             'created_by' => $user->id,
             'updated_by' => $user->id,
         ]);
-        $inventory = \App\Models\FarmRecord::create([
+        $inventory = FarmRecord::create([
             'module' => 'inventory',
             'reference' => 'FEED-01',
             'title' => 'Feed',
@@ -351,7 +359,7 @@ class FarmManagementTest extends TestCase
             ->call('saveRecord')
             ->assertHasNoErrors();
 
-        $purchase = \App\Models\FarmRecord::where('module', 'purchases')->firstOrFail();
+        $purchase = FarmRecord::where('module', 'purchases')->firstOrFail();
         $this->assertSame('100.00', $purchase->amount);
         Livewire::actingAs($user)->test(FarmRecordIndex::class, ['module' => 'purchases'])
             ->call('receivePurchase', $purchase->id)
@@ -407,7 +415,7 @@ class FarmManagementTest extends TestCase
             'inventory.create',
             'inventory.update',
         ]);
-        $inventory = \App\Models\FarmRecord::create([
+        $inventory = FarmRecord::create([
             'module' => 'inventory',
             'reference' => 'MEAT-1',
             'title' => 'Farm product',
@@ -433,7 +441,7 @@ class FarmManagementTest extends TestCase
             ->set('form.unit_price', '10')
             ->call('saveRecord')
             ->assertHasNoErrors();
-        $saleRecord = \App\Models\FarmRecord::where('reference', 'PRODUCT-SALE')->firstOrFail();
+        $saleRecord = FarmRecord::where('reference', 'PRODUCT-SALE')->firstOrFail();
         Livewire::actingAs($user)->test(FarmRecordIndex::class, ['module' => 'sales'])
             ->call('completeSale', $saleRecord->id)
             ->assertHasNoErrors();
@@ -458,10 +466,10 @@ class FarmManagementTest extends TestCase
 
     public function test_reports_are_database_backed_and_respect_date_range(): void
     {
-        \Illuminate\Support\Carbon::setTestNow('2026-10-16 12:00:00');
+        Carbon::setTestNow('2026-10-16 12:00:00');
         $admin = User::factory()->create();
         $admin->assignRole('admin');
-        \App\Models\FarmRecord::create([
+        FarmRecord::create([
             'module' => 'expenses',
             'reference' => 'REPORT-EXP',
             'title' => 'Feed expense',
@@ -469,7 +477,7 @@ class FarmManagementTest extends TestCase
             'amount' => 125.50,
             'status' => 'active',
         ]);
-        \App\Models\FarmRecord::create([
+        FarmRecord::create([
             'module' => 'sales',
             'reference' => 'REPORT-SALE',
             'title' => 'Animal sale',
@@ -491,7 +499,7 @@ class FarmManagementTest extends TestCase
             ->assertDontSee('900.00')
             ->call('exportCsv')
             ->assertFileDownloaded('farmsuite-report.csv');
-        \Illuminate\Support\Carbon::setTestNow();
+        Carbon::setTestNow();
     }
 
     public function test_customer_records_can_be_updated_and_archived_without_deleting_history(): void
@@ -511,7 +519,7 @@ class FarmManagementTest extends TestCase
             ->call('saveRecord')
             ->assertHasNoErrors();
 
-        $customer = \App\Models\FarmRecord::where('module', 'customers')->firstOrFail();
+        $customer = FarmRecord::where('module', 'customers')->firstOrFail();
         Livewire::actingAs($user)->test(FarmRecordIndex::class, ['module' => 'customers'])
             ->call('editRecord', $customer->id)
             ->set('form.title', 'Updated Customer')
@@ -546,7 +554,7 @@ class FarmManagementTest extends TestCase
             ->call('saveRecord')
             ->assertHasNoErrors();
 
-        $feed = \App\Models\FarmRecord::where('module', 'feeding')->where('category', 'stock')->firstOrFail();
+        $feed = FarmRecord::where('module', 'feeding')->where('category', 'stock')->firstOrFail();
         Livewire::actingAs($user)->test(FarmRecordIndex::class, ['module' => 'feeding'])
             ->set('stockAdjustment', '3.5')
             ->call('consumeFeed', $feed->id)

@@ -17,28 +17,28 @@
             </a>
 
             <div class="hidden items-center gap-8 md:flex">
-                <a class="nav-link" href="#home">Home</a>
-                <a class="nav-link" href="#features">Features</a>
-                <a class="nav-link" href="#about">About</a>
-                <a class="nav-link" href="#contact">Contact</a>
-                <a class="button button-outline !px-5 !py-2.5" href="{{ route('login') }}">Login</a>
-                <a class="button button-primary !px-5 !py-2.5" href="{{ route('register') }}">Register</a>
+                <a class="nav-link" href="#home">{{ __('biik.home') }}</a>
+                <a class="nav-link" href="#features">{{ __('biik.features') }}</a>
+                <a class="nav-link" href="#about">{{ __('biik.about') }}</a>
+                <a class="nav-link" href="#contact">{{ __('biik.contact') }}</a>
+                <a class="button button-outline !px-5 !py-2.5" href="{{ route('login') }}">{{ __('biik.login') }}</a>
+                <a class="button button-primary !px-5 !py-2.5" href="{{ route('register') }}">{{ __('biik.register') }}</a>
             </div>
 
             <details class="mobile-nav relative md:hidden">
-                <summary class="mobile-nav-toggle" aria-label="Toggle navigation menu">
-                    <span class="sr-only">Open navigation menu</span>
+                <summary class="mobile-nav-toggle" aria-label="{{ __('biik.toggle_navigation') }}">
+                    <span class="sr-only">{{ __('biik.open_navigation_menu') }}</span>
                     <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                         <path d="M4 7h16M4 12h16M4 17h16" stroke-linecap="round"/>
                     </svg>
                 </summary>
                 <div class="mobile-nav-menu">
-                    <a href="#home">Home</a>
-                    <a href="#features">Features</a>
-                    <a href="#about">About</a>
-                    <a href="#contact">Contact</a>
-                    <a href="{{ route('login') }}">Login</a>
-                    <a href="{{ route('register') }}">Register</a>
+                    <a href="#home">{{ __('biik.home') }}</a>
+                    <a href="#features">{{ __('biik.features') }}</a>
+                    <a href="#about">{{ __('biik.about') }}</a>
+                    <a href="#contact">{{ __('biik.contact') }}</a>
+                    <a href="{{ route('login') }}">{{ __('biik.login') }}</a>
+                    <a href="{{ route('register') }}">{{ __('biik.register') }}</a>
                 </div>
             </details>
         </nav>
@@ -47,23 +47,23 @@
     <section id="home" class="hero-section scroll-mt-8">
         <div class="site-container grid items-center gap-14 py-16 sm:py-20 lg:grid-cols-[1.04fr_0.96fr] lg:gap-12 lg:py-24">
             <div class="max-w-2xl">
-                <p class="eyebrow"><span class="eyebrow-dot"></span> A calmer way to run your farm</p>
+                <p class="eyebrow"><span class="eyebrow-dot"></span> {{ __('biik.calm_farm_management') }}</p>
                 <h1 class="mt-6 text-4xl font-semibold leading-[1.08] tracking-tight text-forest-950 sm:text-5xl lg:text-[3.65rem]">
-                    Smarter Pig Farm Management Starts Here.
+                    {{ __('biik.landing_headline') }}
                 </h1>
                 <p class="mt-6 max-w-xl text-lg leading-8 text-forest-800/80">
-                    BIIK FarmSuite helps you keep piglet, breeding, and animal records together with sales and farm expenses—so the details of your farm are easier to manage.
+                    {{ __('biik.landing_supporting') }}
                 </p>
                 <div class="mt-9 flex flex-col gap-3 sm:flex-row">
                     <a href="{{ route('login') }}" class="button button-primary">
-                        Get Started
+                        {{ __('biik.get_started') }}
                         <svg viewBox="0 0 20 20" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                             <path d="M4 10h12m-5-5 5 5-5 5" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
                     </a>
-                    <a href="#features" class="button button-secondary">Explore Features</a>
+                    <a href="#features" class="button button-secondary">{{ __('biik.explore_features') }}</a>
                 </div>
-                <p class="mt-5 text-sm text-forest-800/65">A practical home for the records behind your day-to-day work.</p>
+                <p class="mt-5 text-sm text-forest-800/65">{{ __('biik.practical_records_workspace') }}</p>
             </div>
 
             <div class="hero-art" aria-label="Illustration of farm records organized in one workspace" role="img">
@@ -72,8 +72,8 @@
                 <div class="workspace-card">
                     <div class="flex items-center justify-between border-b border-forest-950/10 px-5 py-4">
                         <div>
-                            <p class="text-xs font-semibold uppercase tracking-[0.14em] text-forest-800/60">Farm workspace</p>
-                            <p class="mt-1 text-sm font-semibold text-forest-950">Everything in its place</p>
+                            <p class="text-xs font-semibold uppercase tracking-[0.14em] text-forest-800/60">{{ __('biik.farm_workspace') }}</p>
+                            <p class="mt-1 text-sm font-semibold text-forest-950">{{ __('biik.everything_in_place') }}</p>
                         </div>
                         <span class="workspace-icon">
                             <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
@@ -105,12 +105,12 @@
                         </svg>
                     </div>
                     <div class="grid grid-cols-3 gap-2 px-4 py-4 sm:gap-3">
-                        <div class="workspace-tile"><span class="tile-dot bg-forest-700"></span><span>Animals</span></div>
-                        <div class="workspace-tile"><span class="tile-dot bg-pig-400"></span><span>Breeding</span></div>
-                        <div class="workspace-tile"><span class="tile-dot bg-amber-500"></span><span>Records</span></div>
+                        <div class="workspace-tile"><span class="tile-dot bg-forest-700"></span><span>{{ __('biik.animals') }}</span></div>
+                        <div class="workspace-tile"><span class="tile-dot bg-pig-400"></span><span>{{ __('biik.breeding') }}</span></div>
+                        <div class="workspace-tile"><span class="tile-dot bg-amber-500"></span><span>{{ __('biik.records') }}</span></div>
                     </div>
                 </div>
-                <span class="hero-floating-note">Made for the work you do every day</span>
+                <span class="hero-floating-note">{{ __('biik.daily_work_note') }}</span>
             </div>
         </div>
     </section>
@@ -118,9 +118,9 @@
     <section id="features" class="section-pad scroll-mt-8 bg-white">
         <div class="site-container">
             <div class="section-heading">
-                <p class="eyebrow">One suite, useful details</p>
-                <h2 class="section-title">The essentials of farm management, together.</h2>
-                <p class="section-copy">Keep the information you rely on organized and accessible as your farm work moves from one day to the next.</p>
+                <p class="eyebrow">{{ __('biik.one_suite') }}</p>
+                <h2 class="section-title">{{ __('biik.feature_headline') }}</h2>
+                <p class="section-copy">{{ __('biik.feature_intro') }}</p>
             </div>
             <div class="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                 <article class="feature-card">
@@ -129,8 +129,8 @@
                             <path d="M4 19V8l8-4 8 4v11H4Z" stroke-linejoin="round"/><path d="M8 19v-6h8v6M4 8l8 5 8-5" stroke-linejoin="round"/>
                         </svg>
                     </span>
-                    <h3>Animal Management</h3>
-                    <p>Keep animal profiles and important details in one organized place.</p>
+                    <h3>{{ __('biik.animal_management') }}</h3>
+                    <p>{{ __('biik.feature_animals') }}</p>
                 </article>
                 <article class="feature-card">
                     <span class="feature-icon feature-icon-pink">
@@ -138,8 +138,8 @@
                             <path d="M12 20s-7-4.3-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.7-7 10-7 10Z" stroke-linejoin="round"/><path d="M8 12h2l1.2-2.2L13 15l1.2-3H16" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
                     </span>
-                    <h3>Breeding and Farrowing</h3>
-                    <p>Record breeding activity and farrowing information for your herd.</p>
+                    <h3>{{ __('biik.breeding_farrowing') }}</h3>
+                    <p>{{ __('biik.feature_breeding') }}</p>
                 </article>
                 <article class="feature-card">
                     <span class="feature-icon feature-icon-cream">
@@ -147,8 +147,8 @@
                             <path d="M5 19V9l7-5 7 5v10H5Z" stroke-linejoin="round"/><path d="M9 19v-5h6v5M9 10h.01M15 10h.01" stroke-linecap="round"/>
                         </svg>
                     </span>
-                    <h3>Piglet Records</h3>
-                    <p>Track piglet details from birth and keep their records connected.</p>
+                    <h3>{{ __('biik.piglet_records') }}</h3>
+                    <p>{{ __('biik.feature_piglets') }}</p>
                 </article>
                 <article class="feature-card">
                     <span class="feature-icon feature-icon-cream">
@@ -156,8 +156,8 @@
                             <path d="M4 7h16v13H4zM8 7V4h8v3M8 12h8m-8 4h5" stroke-linecap="round" stroke-linejoin="round"/><path d="M7 10h.01" stroke-linecap="round"/>
                         </svg>
                     </span>
-                    <h3>Farm Sales</h3>
-                    <p>Keep your farm sales recorded alongside the rest of your activity.</p>
+                    <h3>{{ __('biik.farm_sales') }}</h3>
+                    <p>{{ __('biik.feature_sales') }}</p>
                 </article>
                 <article class="feature-card">
                     <span class="feature-icon feature-icon-pink">
@@ -165,8 +165,8 @@
                             <path d="M4 19h16M6 16V9m6 7V5m6 11v-4" stroke-linecap="round"/><path d="m5 7 6-3 6 5 3-2" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
                     </span>
-                    <h3>Farm Reports</h3>
-                    <p>Review information from your farm records with clear, practical reports.</p>
+                    <h3>{{ __('biik.farm_reports') }}</h3>
+                    <p>{{ __('biik.feature_reports') }}</p>
                 </article>
                 <article class="feature-card sm:col-span-2 lg:col-span-1">
                     <span class="feature-icon feature-icon-green">
@@ -174,8 +174,8 @@
                             <path d="M4 19h16M6 16V9m6 7V5m6 11v-4" stroke-linecap="round"/><path d="m5 7 6-3 6 5 3-2" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
                     </span>
-                    <h3>Farm Expenses</h3>
-                    <p>Keep operating costs recorded alongside the rest of your farm activity.</p>
+                    <h3>{{ __('biik.farm_expenses') }}</h3>
+                    <p>{{ __('biik.feature_expenses') }}</p>
                 </article>
             </div>
         </div>
@@ -195,15 +195,15 @@
                 <span class="about-leaf about-leaf-two"></span>
             </div>
             <div class="max-w-xl">
-                <p class="eyebrow">About BIIK FarmSuite</p>
-                <h2 class="section-title mt-4">Built around the records that keep a farm moving.</h2>
+                <p class="eyebrow">{{ __('biik.about_farmsuite') }}</p>
+                <h2 class="section-title mt-4">{{ __('biik.about_headline') }}</h2>
                 <p class="mt-5 leading-7 text-forest-800/80">
-                    Farm work involves many connected details, from animal histories and breeding events to piglet records and everyday finances. BIIK FarmSuite brings those management needs into one focused digital workspace.
+                    {{ __('biik.about_paragraph_one') }}
                 </p>
                 <p class="mt-4 leading-7 text-forest-800/80">
-                    Our goal is to make farm information easier to organize and review, helping farmers spend less time searching through scattered records and more time tending to the work in front of them.
+                    {{ __('biik.about_paragraph_two') }}
                 </p>
-                <a href="{{ route('login') }}" class="button button-primary mt-7">Get started <span aria-hidden="true">→</span></a>
+                <a href="{{ route('login') }}" class="button button-primary mt-7">{{ __('biik.get_started') }} <span aria-hidden="true">→</span></a>
             </div>
         </div>
     </section>
@@ -212,22 +212,22 @@
         <div class="site-container">
             <div class="contact-panel">
                 <div class="max-w-xl">
-                    <p class="eyebrow">Contact</p>
-                    <h2 class="mt-4 text-3xl font-semibold tracking-tight text-forest-950 sm:text-4xl">Let’s talk about your farm.</h2>
-                    <p class="mt-4 leading-7 text-forest-800/80">For product questions or information about BIIK FarmSuite, use the contact details below.</p>
+                    <p class="eyebrow">{{ __('biik.contact') }}</p>
+                    <h2 class="mt-4 text-3xl font-semibold tracking-tight text-forest-950 sm:text-4xl">{{ __('biik.contact_headline') }}</h2>
+                    <p class="mt-4 leading-7 text-forest-800/80">{{ __('biik.contact_intro') }}</p>
                 </div>
                 <div class="contact-details">
                     @if (filled(config('farmsuite.contact.email')))
-                        <p><span>Email</span><a href="mailto:{{ config('farmsuite.contact.email') }}">{{ config('farmsuite.contact.email') }}</a></p>
+                        <p><span>{{ __('biik.email') }}</span><a href="mailto:{{ config('farmsuite.contact.email') }}">{{ config('farmsuite.contact.email') }}</a></p>
                     @endif
                     @if (filled(config('farmsuite.contact.phone')))
-                        <p><span>Phone</span><a href="tel:{{ config('farmsuite.contact.phone') }}">{{ config('farmsuite.contact.phone') }}</a></p>
+                        <p><span>{{ __('biik.phone') }}</span><a href="tel:{{ config('farmsuite.contact.phone') }}">{{ config('farmsuite.contact.phone') }}</a></p>
                     @endif
                     @if (filled(config('farmsuite.contact.address')))
-                        <p><span>Address</span><span>{{ config('farmsuite.contact.address') }}</span></p>
+                        <p><span>{{ __('biik.address') }}</span><span>{{ config('farmsuite.contact.address') }}</span></p>
                     @endif
                     @unless (filled(config('farmsuite.contact.email')) || filled(config('farmsuite.contact.phone')) || filled(config('farmsuite.contact.address')))
-                        <p class="text-sm leading-6 text-forest-800/70">Contact details have not been configured yet.</p>
+                        <p class="text-sm leading-6 text-forest-800/70">{{ __('biik.contact_unconfigured') }}</p>
                     @endunless
                 </div>
             </div>
@@ -246,11 +246,11 @@
                 <span>BIIK <span class="font-normal text-white/70">FarmSuite</span></span>
             </a>
             <nav class="flex flex-wrap gap-x-6 gap-y-2 text-sm text-white/75" aria-label="Footer navigation">
-                <a class="footer-link" href="#home">Home</a>
-                <a class="footer-link" href="#features">Features</a>
-                <a class="footer-link" href="#about">About</a>
-                <a class="footer-link" href="#contact">Contact</a>
-                <a class="footer-link" href="{{ route('login') }}">Login</a>
+                <a class="footer-link" href="#home">{{ __('biik.home') }}</a>
+                <a class="footer-link" href="#features">{{ __('biik.features') }}</a>
+                <a class="footer-link" href="#about">{{ __('biik.about') }}</a>
+                <a class="footer-link" href="#contact">{{ __('biik.contact') }}</a>
+                <a class="footer-link" href="{{ route('login') }}">{{ __('biik.login') }}</a>
             </nav>
             <p class="text-sm text-white/60">&copy; {{ now()->year }} BIIK FarmSuite</p>
         </div>

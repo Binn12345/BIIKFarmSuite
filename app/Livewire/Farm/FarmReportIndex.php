@@ -5,7 +5,9 @@ namespace App\Livewire\Farm;
 use App\Models\Animal;
 use App\Models\FarmRecord;
 use App\Models\StockMovement;
+use App\Support\FarmRecordCatalog;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Validation\Rule;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -77,7 +79,7 @@ class FarmReportIndex extends Component
         $this->validate([
             'from' => ['required', 'date'],
             'to' => ['required', 'date', 'after_or_equal:from'],
-            'module' => ['nullable', \Illuminate\Validation\Rule::in(array_keys(\App\Support\FarmRecordCatalog::modules()))],
+            'module' => ['nullable', Rule::in(array_keys(FarmRecordCatalog::modules()))],
         ]);
     }
 
@@ -122,6 +124,6 @@ class FarmReportIndex extends Component
             'salesRevenue' => $sales->sum('amount'),
             'purchasesTotal' => $purchases->sum('amount'),
             'expensesTotal' => $expenses->sum('amount'),
-        ])->layout('layouts.app', ['title' => 'Farm Reports']);
+        ])->layout('layouts.app', ['title' => __('biik.modules.reports.title')]);
     }
 }

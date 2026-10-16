@@ -14,9 +14,9 @@
                 </span>
             </a>
             <div class="mt-14 max-w-xl">
-                <p class="eyebrow">Welcome back</p>
-                <h1 class="mt-5 text-4xl font-semibold leading-tight tracking-tight text-forest-950 sm:text-5xl">Your farm workspace is waiting.</h1>
-                <p class="mt-5 max-w-lg text-lg leading-8 text-forest-800/75">Sign in to continue managing your farm records with BIIK FarmSuite.</p>
+                <p class="eyebrow">{{ __('biik.welcome_back') }}</p>
+                <h1 class="mt-5 text-4xl font-semibold leading-tight tracking-tight text-forest-950 sm:text-5xl">{{ __('biik.workspace_waiting') }}</h1>
+                <p class="mt-5 max-w-lg text-lg leading-8 text-forest-800/75">{{ __('biik.sign_in_intro') }}</p>
             </div>
             <div class="login-illustration mt-12 hidden max-w-lg sm:block" aria-hidden="true">
                 <svg viewBox="0 0 440 185" class="w-full" fill="none">
@@ -38,14 +38,14 @@
 
         <section class="login-card" aria-labelledby="login-heading">
             <div class="mb-8">
-                <h2 id="login-heading" class="text-2xl font-semibold tracking-tight text-forest-950">Log in to your account</h2>
-                <p class="mt-2 text-sm leading-6 text-forest-800/70">Enter your account details to access the dashboard.</p>
+                <h2 id="login-heading" class="text-2xl font-semibold tracking-tight text-forest-950">{{ __('biik.log_in') }}</h2>
+                <p class="mt-2 text-sm leading-6 text-forest-800/70">{{ __('biik.login_details_prompt') }}</p>
             </div>
 
             <form wire:submit="authenticate" class="space-y-5" novalidate>
                 @csrf
                 <div>
-                    <label for="email" class="form-label">Email address</label>
+                    <label for="email" class="form-label">{{ __('biik.email_address') }}</label>
                     <input
                         id="email"
                         type="email"
@@ -64,7 +64,7 @@
                 </div>
 
                 <div>
-                    <label for="password" class="form-label">Password</label>
+                    <label for="password" class="form-label">{{ __('biik.password') }}</label>
                     <div class="relative">
                         <input
                             id="password"
@@ -79,10 +79,10 @@
                         <button
                             type="button"
                             wire:click="togglePasswordVisibility"
-                            aria-label="{{ $showPassword ? 'Hide password' : 'Show password' }}"
+                            aria-label="{{ $showPassword ? __('biik.hide_password') : __('biik.show_password') }}"
                             aria-pressed="{{ $showPassword ? 'true' : 'false' }}"
                             class="password-toggle"
-                        >{{ $showPassword ? 'Hide' : 'Show' }}</button>
+                        >{{ $showPassword ? __('biik.hide') : __('biik.show') }}</button>
                     </div>
                     @error('password')
                         <p id="password-error" class="form-error" role="alert">{{ $message }}</p>
@@ -92,16 +92,16 @@
                 <div class="flex flex-wrap items-center justify-between gap-3">
                     <label for="remember" class="inline-flex cursor-pointer items-center gap-2.5 text-sm text-forest-800">
                         <input id="remember" type="checkbox" wire:model="remember" class="form-checkbox">
-                        Remember me
+                        {{ __('biik.remember_me') }}
                     </label>
                     @if (Route::has('password.request'))
-                        <a href="{{ route('password.request') }}" class="text-sm font-semibold text-forest-800 underline decoration-forest-800/30 underline-offset-4 hover:text-forest-950">Forgot password?</a>
+                        <a href="{{ route('password.request') }}" class="text-sm font-semibold text-forest-800 underline decoration-forest-800/30 underline-offset-4 hover:text-forest-950">{{ __('biik.forgot_password') }}</a>
                     @endif
                 </div>
 
                 <button type="submit" class="button button-primary w-full" wire:loading.attr="disabled" wire:target="authenticate">
-                    <span wire:loading.remove wire:target="authenticate">Log in</span>
-                    <span wire:loading wire:target="authenticate">Signing in…</span>
+                    <span wire:loading.remove wire:target="authenticate">{{ __('biik.log_in') }}</span>
+                    <span wire:loading wire:target="authenticate">{{ __('biik.signing_in') }}</span>
                     <svg wire:loading.remove wire:target="authenticate" viewBox="0 0 20 20" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                         <path d="M4 10h12m-5-5 5 5-5 5" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
@@ -109,11 +109,11 @@
             </form>
 
             <p class="mt-8 text-center text-sm text-forest-800/70">
-                <a href="{{ route('home') }}" class="font-semibold text-forest-800 underline decoration-forest-800/30 underline-offset-4 hover:text-forest-950">Return to BIIK FarmSuite</a>
+                <a href="{{ route('home') }}" class="font-semibold text-forest-800 underline decoration-forest-800/30 underline-offset-4 hover:text-forest-950">{{ __('biik.return_to_farmsuite') }}</a>
             </p>
             <p class="mt-3 text-center text-sm text-forest-800/70">
-                New to BIIK FarmSuite?
-                <a href="{{ route('register') }}" class="font-semibold text-forest-800 underline decoration-forest-800/30 underline-offset-4 hover:text-forest-950">Create an account</a>
+                {{ __('biik.new_to_farmsuite') }}
+                <a href="{{ route('register') }}" class="font-semibold text-forest-800 underline decoration-forest-800/30 underline-offset-4 hover:text-forest-950">{{ __('biik.create_account') }}</a>
             </p>
         </section>
     </div>

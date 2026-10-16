@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Auth\PasswordController;
+use App\Http\Controllers\ProfilePictureController;
+use App\Livewire\Account\Profile;
 use App\Livewire\Admin\AuditLogIndex;
 use App\Livewire\Admin\RoleManagement;
 use App\Livewire\Admin\UserManagement;
@@ -10,7 +12,6 @@ use App\Livewire\Farm\AnimalIndex;
 use App\Livewire\Farm\FarmRecordIndex;
 use App\Livewire\Farm\FarmReportIndex;
 use App\Livewire\Farm\PenIndex;
-use App\Livewire\Account\Profile;
 use App\Support\DashboardModules;
 use App\Support\DashboardSummary;
 use App\Support\FarmRecordCatalog;
@@ -21,6 +22,16 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'pages.home')->name('home');
+Route::post('/locale', function (Request $request) {
+    $validated = $request->validate(['locale' => ['required', 'in:en,fil']]);
+    $request->session()->put('locale', $validated['locale']);
+    if ($request->user()) {
+        $request->user()->forceFill(['locale' => $validated['locale']])->save();
+    }
+    app()->setLocale($validated['locale']);
+
+    return back();
+})->name('locale.switch');
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', Login::class)->name('login');
@@ -64,6 +75,10 @@ Route::post('/logout', function (Request $request) {
 
     return redirect()->route('home');
 })->middleware('auth')->name('logout');
+
+Route::get('/users/{user}/profile-picture', ProfilePictureController::class)
+    ->middleware('auth')
+    ->name('users.profile-picture');
 
 Route::middleware(['auth', 'verified', 'account.active'])->group(function () {
     Route::get('/dashboard', function () {

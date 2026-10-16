@@ -60,6 +60,6 @@ class Login extends Component
     public function render()
     {
         return view('livewire.auth.login')
-            ->layout('layouts.app', ['title' => 'Log in']);
+            ->layout('layouts.app', ['title' => __('biik.log_in')]);
     }
 }

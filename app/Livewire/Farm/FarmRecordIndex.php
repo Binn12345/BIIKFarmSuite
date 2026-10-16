@@ -4,8 +4,8 @@ namespace App\Livewire\Farm;
 
 use App\Models\Animal;
 use App\Models\FarmRecord;
-use App\Models\StockMovement;
 use App\Models\SalePayment;
+use App\Models\StockMovement;
 use App\Services\AuditLogger;
 use App\Support\FarmRecordCatalog;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -64,7 +64,7 @@ class FarmRecordIndex extends Component
     {
         $this->authorize($this->module.'.update');
         $record = $this->record($recordId);
-        abort_if(in_array($record->status, ['completed', 'cancelled', 'received', 'archived'], true), 409, 'This historical record cannot be edited.');
+        abort_if(in_array($record->status, ['completed', 'cancelled', 'received', 'archived'], true), 409, __('biik.record_messages.historical_locked'));
 
         foreach (FarmRecordCatalog::for($this->module)['fields'] as $key => $field) {
             $this->form[$key] = match ($key) {
@@ -100,7 +100,7 @@ class FarmRecordIndex extends Component
         $this->authorize($this->module.'.'.($this->editingRecordId ? 'update' : 'create'));
         $catalog = FarmRecordCatalog::for($this->module);
         $existing = $this->editingRecordId ? $this->record($this->editingRecordId) : null;
-        abort_if($existing && in_array($existing->status, ['completed', 'cancelled', 'received', 'archived'], true), 409, 'This historical record cannot be edited.');
+        abort_if($existing && in_array($existing->status, ['completed', 'cancelled', 'received', 'archived'], true), 409, __('biik.record_messages.historical_locked'));
 
         $rules = [];
         foreach ($catalog['fields'] as $key => $field) {
@@ -129,31 +129,31 @@ class FarmRecordIndex extends Component
                 $related = FarmRecord::query()->findOrFail($values[$key]);
                 if ($related->module !== $field['relation']) {
                     throw ValidationException::withMessages([
-                        'form.'.$key => 'The selected related record is invalid.',
+                        'form.'.$key => __('biik.record_messages.related_invalid'),
                     ]);
                 }
                 if (in_array($this->module, ['sales', 'purchases'], true) && $related->status !== 'active') {
                     throw ValidationException::withMessages([
-                        'form.'.$key => 'The selected customer or supplier is inactive.',
+                        'form.'.$key => __('biik.record_messages.party_inactive'),
                     ]);
                 }
                 if ($field['relation'] === 'inventory' && $related->status !== 'active') {
                     throw ValidationException::withMessages([
-                        'form.'.$key => 'The selected inventory item is inactive.',
+                        'form.'.$key => __('biik.record_messages.inventory_inactive'),
                     ]);
                 }
             }
             if (($field['type'] ?? '') === 'animal-reference' && ! empty($values[$key])) {
                 if (! Animal::query()->whereKey($values[$key])->where('sex', 'male')->where('status', 'active')->exists()) {
                     throw ValidationException::withMessages([
-                        'form.'.$key => 'The selected boar must be an active male animal.',
+                        'form.'.$key => __('biik.record_messages.boar_invalid'),
                     ]);
                 }
             }
             if (($field['type'] ?? '') === 'animal' && in_array($this->module, ['piglets', 'breeding', 'farrowing'], true) && ! empty($values[$key])) {
                 if (! Animal::query()->whereKey($values[$key])->where('sex', 'female')->where('status', 'active')->exists()) {
                     throw ValidationException::withMessages([
-                        'form.'.$key => 'The selected sow must be an active female animal.',
+                        'form.'.$key => __('biik.record_messages.sow_invalid'),
                     ]);
                 }
             }
@@ -161,27 +161,27 @@ class FarmRecordIndex extends Component
         if ($this->module === 'farrowing'
             && (int) $values['born_alive'] + (int) $values['stillborn'] !== (int) $values['quantity']) {
             throw ValidationException::withMessages([
-                'form.quantity' => 'Total piglets must equal born alive plus stillborn.',
+                'form.quantity' => __('biik.record_messages.farrowing_total'),
             ]);
         }
         if ($this->module === 'sales'
             && empty($values['related_animal_id'])
             && empty($values['inventory_item_id'])) {
             throw ValidationException::withMessages([
-                'form.related_animal_id' => 'Select an animal or an inventory item to sell.',
+                'form.related_animal_id' => __('biik.record_messages.sale_target_required'),
             ]);
         }
         if ($this->module === 'breeding' && ! empty($values['expected_date'])
             && $values['expected_date'] < $values['record_date']) {
             throw ValidationException::withMessages([
-                'form.expected_date' => 'Expected farrowing date cannot be earlier than the mating date.',
+                'form.expected_date' => __('biik.record_messages.expected_date_invalid'),
             ]);
         }
         if ($this->module === 'farrowing' && ! empty($values['related_record_id'])) {
             $breeding = FarmRecord::query()->findOrFail($values['related_record_id']);
             if ($breeding->related_animal_id !== (int) ($values['related_animal_id'] ?? 0)) {
                 throw ValidationException::withMessages([
-                    'form.related_record_id' => 'The selected breeding record belongs to a different sow.',
+                    'form.related_record_id' => __('biik.record_messages.breeding_sow_mismatch'),
                 ]);
             }
         }
@@ -189,12 +189,12 @@ class FarmRecordIndex extends Component
             $farrowing = FarmRecord::query()->findOrFail($values['related_record_id']);
             if ($farrowing->related_animal_id !== (int) ($values['related_animal_id'] ?? 0)) {
                 throw ValidationException::withMessages([
-                    'form.related_record_id' => 'The selected farrowing record belongs to a different sow.',
+                    'form.related_record_id' => __('biik.record_messages.farrowing_sow_mismatch'),
                 ]);
             }
         }
         if ($this->module === 'mortality') {
-            abort_if($existing, 409, 'Mortality events are preserved and cannot be edited.');
+            abort_if($existing, 409, __('biik.record_messages.mortality_locked'));
             $alreadyRecorded = FarmRecord::query()
                 ->where('module', 'mortality')
                 ->where('related_animal_id', $values['related_animal_id'] ?? null)
@@ -202,19 +202,19 @@ class FarmRecordIndex extends Component
                 ->exists();
             if ($alreadyRecorded) {
                 throw ValidationException::withMessages([
-                    'form.related_animal_id' => 'A mortality event is already recorded for this animal.',
+                    'form.related_animal_id' => __('biik.record_messages.mortality_duplicate'),
                 ]);
             }
         }
         if ($this->module === 'sales' && ! empty($values['related_animal_id'])) {
             if (! Animal::query()->whereKey($values['related_animal_id'])->where('status', 'active')->exists()) {
                 throw ValidationException::withMessages([
-                    'form.related_animal_id' => 'Only active animals can be selected for sale.',
+                    'form.related_animal_id' => __('biik.record_messages.sale_animal_inactive'),
                 ]);
             }
         }
 
-        DB::transaction(function () use ($existing, $values, $catalog): void {
+        DB::transaction(function () use ($existing, $values): void {
             $record = $existing ? FarmRecord::query()->lockForUpdate()->findOrFail($existing->id) : new FarmRecord;
             $creating = ! $existing;
             if (! $creating && in_array($this->module, ['inventory', 'feeding'], true) && array_key_exists('quantity', $values)) {
@@ -258,7 +258,7 @@ class FarmRecordIndex extends Component
 
             if ($this->module === 'mortality') {
                 $animal = Animal::query()->lockForUpdate()->findOrFail($record->related_animal_id);
-                abort_unless($animal->status === 'active', 409, 'Only active animals can be recorded in the mortality register.');
+                abort_unless($animal->status === 'active', 409, __('biik.record_messages.mortality_animal_inactive'));
                 abort_if(
                     FarmRecord::query()->where('module', 'mortality')->where('related_animal_id', $animal->id)->exists(),
                     409,
@@ -286,7 +286,7 @@ class FarmRecordIndex extends Component
 
         $this->selectedRecordId = null;
         $this->resetForm();
-        session()->flash('status', $catalog['title'].' record saved.');
+        session()->flash('status', __('biik.record_saved', ['module' => $catalog['title']]));
     }
 
     public function archiveRecord(int $recordId): void
@@ -294,13 +294,13 @@ class FarmRecordIndex extends Component
         $permission = $this->module === 'sales' ? 'sales.cancel' : $this->module.'.delete';
         $this->authorize($permission);
         $record = $this->record($recordId);
-        abort_if(in_array($record->status, ['completed', 'received', 'cancelled', 'archived'], true), 409, 'This record has already been finalized.');
+        abort_if(in_array($record->status, ['completed', 'received', 'cancelled', 'archived'], true), 409, __('biik.record_messages.record_finalized'));
 
         DB::transaction(function () use ($record): void {
             $record->forceFill(['status' => 'archived', 'updated_by' => auth()->id()])->save();
             app(AuditLogger::class)->record($this->module.'.archived', $record, ['reference' => $record->reference]);
         });
-        session()->flash('status', 'Record archived.');
+        session()->flash('status', __('biik.record_archived'));
     }
 
     public function completeSale(int $recordId): void
@@ -308,23 +308,23 @@ class FarmRecordIndex extends Component
         $this->authorize('sales.update');
         DB::transaction(function () use ($recordId): void {
             $sale = $this->record($recordId, true);
-            abort_unless($sale->status === 'draft', 409, 'Only draft sales can be completed.');
+            abort_unless($sale->status === 'draft', 409, __('biik.record_messages.sale_draft_only'));
             if ($sale->related_animal_id) {
                 $animal = Animal::query()->lockForUpdate()->findOrFail($sale->related_animal_id);
-                abort_unless($animal->status === 'active', 409, 'This animal is no longer available for sale.');
+                abort_unless($animal->status === 'active', 409, __('biik.record_messages.animal_unavailable'));
                 $previousSale = FarmRecord::query()
                     ->where('module', 'sales')
                     ->where('related_animal_id', $animal->id)
                     ->where('status', 'completed')
                     ->exists();
-                abort_if($previousSale, 409, 'This animal has already been sold.');
+                abort_if($previousSale, 409, __('biik.record_messages.animal_already_sold'));
                 $animal->forceFill(['status' => 'sold', 'updated_by' => auth()->id()])->save();
             }
             $inventoryId = data_get($sale->data, 'inventory_item_id');
             if ($inventoryId) {
                 $inventory = FarmRecord::query()->where('module', 'inventory')->lockForUpdate()->findOrFail($inventoryId);
-                abort_unless($inventory->status === 'active', 409, 'The selected inventory item is inactive.');
-                abort_if((float) $inventory->quantity < (float) $sale->quantity, 409, 'There is not enough inventory to complete this sale.');
+                abort_unless($inventory->status === 'active', 409, __('biik.record_messages.inventory_inactive'));
+                abort_if((float) $inventory->quantity < (float) $sale->quantity, 409, __('biik.record_messages.inventory_insufficient'));
                 $inventory->quantity = (float) $inventory->quantity - (float) $sale->quantity;
                 $inventory->updated_by = auth()->id();
                 $inventory->save();
@@ -344,7 +344,7 @@ class FarmRecordIndex extends Component
                 'amount' => $sale->amount,
             ]);
         });
-        session()->flash('status', 'Sale completed.');
+        session()->flash('status', __('biik.record_messages.sale_completed'));
     }
 
     public function cancelSale(int $recordId): void
@@ -352,15 +352,15 @@ class FarmRecordIndex extends Component
         $this->authorize('sales.cancel');
         DB::transaction(function () use ($recordId): void {
             $sale = $this->record($recordId, true);
-            abort_unless($sale->status === 'completed', 409, 'Only completed sales can be cancelled.');
+            abort_unless($sale->status === 'completed', 409, __('biik.record_messages.sale_completed_only'));
             if ((float) $sale->payments()->sum('amount') > 0) {
                 throw ValidationException::withMessages([
-                    'sale' => 'A sale with recorded payments cannot be cancelled until those payments are reconciled.',
+                    'sale' => __('biik.record_messages.payments_reconcile'),
                 ]);
             }
             if ($sale->related_animal_id) {
                 $animal = Animal::query()->lockForUpdate()->findOrFail($sale->related_animal_id);
-                abort_unless($animal->status === 'sold', 409, 'Animal status changed; sale cannot safely be cancelled.');
+                abort_unless($animal->status === 'sold', 409, __('biik.record_messages.animal_status_changed'));
                 $animal->forceFill(['status' => 'active', 'updated_by' => auth()->id()])->save();
             }
             $inventoryId = data_get($sale->data, 'inventory_item_id');
@@ -382,7 +382,7 @@ class FarmRecordIndex extends Component
             $sale->forceFill(['status' => 'cancelled', 'updated_by' => auth()->id()])->save();
             app(AuditLogger::class)->record('sales.cancelled', $sale, ['reference' => $sale->reference]);
         });
-        session()->flash('status', 'Sale cancelled and retained in history.');
+        session()->flash('status', __('biik.record_messages.sale_cancelled'));
     }
 
     public function receivePurchase(int $recordId): void
@@ -390,9 +390,9 @@ class FarmRecordIndex extends Component
         $this->authorize('purchases.receive');
         DB::transaction(function () use ($recordId): void {
             $purchase = $this->record($recordId, true);
-            abort_unless($purchase->status === 'ordered', 409, 'This purchase has already been received or cancelled.');
+            abort_unless($purchase->status === 'ordered', 409, __('biik.record_messages.purchase_already_received'));
             $inventoryId = data_get($purchase->data, 'inventory_record_id');
-            abort_if(! $inventoryId, 422, 'Select an inventory item before receiving this purchase.');
+            abort_if(! $inventoryId, 422, __('biik.record_messages.inventory_required'));
             $inventory = FarmRecord::query()->where('module', 'inventory')->lockForUpdate()->findOrFail($inventoryId);
             $inventory->quantity = (float) $inventory->quantity + (float) $purchase->quantity;
             $inventory->updated_by = auth()->id();
@@ -412,17 +412,17 @@ class FarmRecordIndex extends Component
                 'quantity_added' => $purchase->quantity,
             ]);
         });
-        session()->flash('status', 'Purchase received; inventory updated.');
+        session()->flash('status', __('biik.record_messages.purchase_received'));
     }
 
     public function cancelPurchase(int $recordId): void
     {
         $this->authorize('purchases.cancel');
         $purchase = $this->record($recordId);
-        abort_unless($purchase->status === 'ordered', 409, 'Only ordered purchases can be cancelled.');
+        abort_unless($purchase->status === 'ordered', 409, __('biik.record_messages.purchase_ordered_only'));
         $purchase->forceFill(['status' => 'cancelled', 'updated_by' => auth()->id()])->save();
         app(AuditLogger::class)->record('purchases.cancelled', $purchase, ['reference' => $purchase->reference]);
-        session()->flash('status', 'Purchase cancelled.');
+        session()->flash('status', __('biik.record_messages.purchase_cancelled'));
     }
 
     public function recordPayment(int $recordId): void
@@ -441,7 +441,7 @@ class FarmRecordIndex extends Component
         $paymentRejected = false;
         DB::transaction(function () use ($recordId, $validated, &$paymentRejected): void {
             $sale = $this->record($recordId, true);
-            abort_unless($sale->status === 'completed', 409, 'Payments can only be recorded for completed sales.');
+            abort_unless($sale->status === 'completed', 409, __('biik.record_messages.payment_completed_only'));
             $alreadyPaid = (float) $sale->payments()->sum('amount');
             if (round($alreadyPaid + (float) $validated['paymentAmount'], 2) > (float) $sale->amount) {
                 $this->addError('paymentAmount', 'Payment exceeds the outstanding sale balance.');
@@ -468,7 +468,7 @@ class FarmRecordIndex extends Component
         }
 
         $this->reset('paymentAmount', 'paymentMethod', 'paymentReference');
-        session()->flash('status', 'Sale payment recorded.');
+        session()->flash('status', __('biik.record_messages.payment_recorded'));
     }
 
     public function adjustInventory(int $recordId): void
@@ -480,7 +480,7 @@ class FarmRecordIndex extends Component
         DB::transaction(function () use ($recordId, $validated): void {
             $item = $this->record($recordId, true);
             $newQuantity = (float) $item->quantity + (float) $validated['adjustment'];
-            abort_if($newQuantity < 0, 422, 'Stock cannot be reduced below zero.');
+            abort_if($newQuantity < 0, 422, __('biik.record_messages.stock_negative'));
             $item->forceFill(['quantity' => $newQuantity, 'updated_by' => auth()->id()])->save();
             StockMovement::create([
                 'item_record_id' => $item->id,
@@ -496,7 +496,7 @@ class FarmRecordIndex extends Component
             ]);
         });
         $this->reset('stockAdjustment');
-        session()->flash('status', 'Inventory adjusted.');
+        session()->flash('status', __('biik.record_messages.inventory_adjusted'));
     }
 
     public function consumeFeed(int $recordId): void
@@ -507,9 +507,9 @@ class FarmRecordIndex extends Component
         ])->validate();
         DB::transaction(function () use ($recordId, $validated): void {
             $feed = FarmRecord::query()->where('module', 'feeding')->lockForUpdate()->findOrFail($recordId);
-            abort_unless($feed->category === 'stock', 409, 'Consumption can only be recorded against a feed stock record.');
+            abort_unless($feed->category === 'stock', 409, __('biik.record_messages.feed_stock_required'));
             $newQuantity = (float) $feed->quantity - (float) $validated['adjustment'];
-            abort_if($newQuantity < 0, 422, 'Feed consumption cannot exceed stock on hand.');
+            abort_if($newQuantity < 0, 422, __('biik.record_messages.feed_insufficient'));
             $feed->forceFill(['quantity' => $newQuantity, 'updated_by' => auth()->id()])->save();
             $movement = FarmRecord::create([
                 'module' => 'feeding',
@@ -539,7 +539,7 @@ class FarmRecordIndex extends Component
             ]);
         });
         $this->reset('stockAdjustment');
-        session()->flash('status', 'Feed consumption recorded.');
+        session()->flash('status', __('biik.record_messages.feed_consumption_recorded'));
     }
 
     public function closePanels(): void

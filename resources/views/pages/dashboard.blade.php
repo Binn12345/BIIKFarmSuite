@@ -2,7 +2,7 @@
 
 @section('content')
     <div class="min-h-screen bg-cream-50">
-        <header class="border-b border-forest-950/10 bg-white">
+        {{-- <header class="border-b border-forest-950/10 bg-white">
             <div class="site-container flex min-h-20 items-center justify-between gap-5">
                 <a href="{{ route('dashboard') }}" class="brand-mark" aria-label="BIIK FarmSuite dashboard">
                     <svg viewBox="0 0 40 40" aria-hidden="true" class="h-10 w-10 shrink-0">
@@ -21,21 +21,21 @@
                     <button type="submit" class="button button-outline !px-5 !py-2.5">Log out</button>
                 </form>
             </div>
-        </header>
+        </header> --}}
         <section class="site-container py-12 sm:py-16">
             <div class="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                    <p class="eyebrow">Your workspace</p>
-                    <h1 class="mt-3 text-3xl font-semibold tracking-tight text-forest-950 sm:text-4xl">Welcome, {{ auth()->user()->name }}.</h1>
-                    <p class="mt-3 max-w-2xl leading-7 text-forest-800/75">Open the areas available to your account. Access is based on your role and permissions.</p>
+                    <p class="eyebrow">{{ __('biik.your_workspace') }}</p>
+                    <h1 class="mt-3 text-3xl font-semibold tracking-tight text-forest-950 sm:text-4xl">{{ __('biik.welcome', ['name' => auth()->user()->name]) }}</h1>
+                    <p class="mt-3 max-w-2xl leading-7 text-forest-800/75">{{ __('biik.dashboard_intro') }}</p>
                 </div>
                 <span class="inline-flex w-fit items-center rounded-full bg-forest-900/10 px-4 py-2 text-sm font-semibold text-forest-900">
-                    {{ auth()->user()->hasRole('admin') ? 'Admin' : 'Basic User' }}
+                    {{ auth()->user()->hasRole('admin') ? __('biik.administrator') : __('biik.roles.basic-user') }}
                 </span>
             </div>
 
             @if (count($summary))
-                <section class="mt-8" aria-label="Farm summary">
+                <section class="mt-8" aria-label="{{ __('biik.farm_summary') }}">
                     <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                         @foreach ($summary as $item)
                             <article class="rounded-2xl border border-forest-950/10 bg-white p-5 shadow-sm">
@@ -50,7 +50,7 @@
 
             @forelse ($modules as $category => $categoryModules)
                 <section class="mt-10" aria-labelledby="module-category-{{ \Illuminate\Support\Str::slug($category) }}">
-                    <h2 id="module-category-{{ \Illuminate\Support\Str::slug($category) }}" class="text-xl font-semibold text-forest-950">{{ $category }}</h2>
+                    <h2 id="module-category-{{ \Illuminate\Support\Str::slug($category) }}" class="text-xl font-semibold text-forest-950">{{ __('biik.groups.'.$category) }}</h2>
                     <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                         @foreach ($categoryModules as $module)
                             <a href="{{ route($module['route']) }}" class="feature-card group block !min-h-0 rounded-2xl transition hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-forest-700 focus-visible:ring-offset-2">
@@ -79,7 +79,7 @@
                                 <h3 class="mt-4 text-lg font-semibold text-forest-950">{{ $module['title'] }}</h3>
                                 <p class="mt-2 text-sm leading-6 text-forest-800/75">{{ $module['description'] }}</p>
                                 <span class="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-forest-800 group-hover:text-forest-950">
-                                    Open module <span aria-hidden="true">→</span>
+                                    {{ __('biik.open_module') }} <span aria-hidden="true">→</span>
                                 </span>
                             </a>
                         @endforeach
@@ -87,8 +87,8 @@
                 </section>
             @empty
                 <div class="mt-10 rounded-3xl border border-forest-950/10 bg-white p-7 shadow-sm sm:p-9">
-                    <h2 class="text-xl font-semibold text-forest-950">No modules are available yet</h2>
-                    <p class="mt-2 max-w-2xl leading-7 text-forest-800/75">No modules are currently available to your account. Contact an administrator if you need access.</p>
+                    <h2 class="text-xl font-semibold text-forest-950">{{ __('biik.no_modules') }}</h2>
+                    <p class="mt-2 max-w-2xl leading-7 text-forest-800/75">{{ __('biik.no_modules_description') }}</p>
                 </div>
             @endforelse
 

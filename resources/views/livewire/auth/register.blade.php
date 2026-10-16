@@ -14,49 +14,49 @@
                 </span>
             </a>
             <div class="mt-14 max-w-xl">
-                <p class="eyebrow">Get started</p>
-                <h1 class="mt-5 text-4xl font-semibold leading-tight tracking-tight text-forest-950 sm:text-5xl">Create your farm workspace account.</h1>
-                <p class="mt-5 max-w-lg text-lg leading-8 text-forest-800/75">Register to organize your farm records in BIIK FarmSuite.</p>
+                <p class="eyebrow">{{ __('biik.get_started') }}</p>
+                <h1 class="mt-5 text-4xl font-semibold leading-tight tracking-tight text-forest-950 sm:text-5xl">{{ __('biik.create_workspace_account') }}</h1>
+                <p class="mt-5 max-w-lg text-lg leading-8 text-forest-800/75">{{ __('biik.register_intro') }}</p>
             </div>
         </section>
 
         <section class="login-card" aria-labelledby="register-heading">
             <div class="mb-8">
-                <h2 id="register-heading" class="text-2xl font-semibold tracking-tight text-forest-950">Create an account</h2>
-                <p class="mt-2 text-sm leading-6 text-forest-800/70">We’ll send a verification link to your email address.</p>
+                <h2 id="register-heading" class="text-2xl font-semibold tracking-tight text-forest-950">{{ __('biik.create_account') }}</h2>
+                <p class="mt-2 text-sm leading-6 text-forest-800/70">{{ __('biik.verification_email_notice') }}</p>
             </div>
 
             <form wire:submit="register" class="space-y-5" novalidate>
                 @csrf
                 <div>
-                    <label for="name" class="form-label">Full name</label>
+                    <label for="name" class="form-label">{{ __('biik.full_name') }}</label>
                     <input id="name" type="text" wire:model="name" autocomplete="name" required maxlength="255" @error('name') aria-invalid="true" @enderror class="form-input">
                     @error('name') <p class="form-error" role="alert">{{ $message }}</p> @enderror
                 </div>
                 <div>
-                    <label for="email" class="form-label">Email address</label>
+                    <label for="email" class="form-label">{{ __('biik.email_address') }}</label>
                     <input id="email" type="email" wire:model="email" autocomplete="email" inputmode="email" required maxlength="255" @error('email') aria-invalid="true" @enderror class="form-input">
                     @error('email') <p class="form-error" role="alert">{{ $message }}</p> @enderror
                 </div>
                 <div>
-                    <label for="password" class="form-label">Password</label>
+                    <label for="password" class="form-label">{{ __('biik.password') }}</label>
                     <input id="password" type="password" wire:model="password" autocomplete="new-password" required class="form-input" aria-describedby="password-hint">
-                    <p id="password-hint" class="mt-2 text-xs leading-5 text-forest-800/65">Use at least 12 characters with uppercase and lowercase letters, a number, and a symbol.</p>
+                    <p id="password-hint" class="mt-2 text-xs leading-5 text-forest-800/65">{{ __('biik.password_hint') }}</p>
                     @error('password') <p class="form-error" role="alert">{{ $message }}</p> @enderror
                 </div>
                 <div>
-                    <label for="password_confirmation" class="form-label">Confirm password</label>
+                    <label for="password_confirmation" class="form-label">{{ __('biik.confirm_password') }}</label>
                     <input id="password_confirmation" type="password" wire:model="password_confirmation" autocomplete="new-password" required class="form-input">
                 </div>
                 <button type="submit" class="button button-primary w-full" wire:loading.attr="disabled" wire:target="register">
-                    <span wire:loading.remove wire:target="register">Create account</span>
-                    <span wire:loading wire:target="register">Creating account…</span>
+                    <span wire:loading.remove wire:target="register">{{ __('biik.create_account') }}</span>
+                    <span wire:loading wire:target="register">{{ __('biik.creating_account') }}</span>
                 </button>
             </form>
 
             <p class="mt-8 text-center text-sm text-forest-800/70">
-                Already have an account?
-                <a href="{{ route('login') }}" class="font-semibold text-forest-800 underline decoration-forest-800/30 underline-offset-4 hover:text-forest-950">Log in</a>
+                {{ __('biik.already_have_account') }}
+                <a href="{{ route('login') }}" class="font-semibold text-forest-800 underline decoration-forest-800/30 underline-offset-4 hover:text-forest-950">{{ __('biik.log_in') }}</a>
             </p>
         </section>
     </div>

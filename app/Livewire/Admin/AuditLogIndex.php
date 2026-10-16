@@ -70,6 +70,6 @@ class AuditLogIndex extends Component
         return view('livewire.admin.audit-logs', [
             'logs' => $logs,
             'events' => AuditLog::query()->distinct()->orderBy('event')->pluck('event'),
-        ])->layout('layouts.app', ['title' => 'Audit trail']);
+        ])->layout('layouts.app', ['title' => __('biik.admin_ui.audit_title')]);
     }
 }

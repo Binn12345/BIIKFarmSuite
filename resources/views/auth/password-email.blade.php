@@ -8,8 +8,8 @@
                     <span class="grid h-10 w-10 place-items-center rounded-xl bg-forest-900 text-sm font-extrabold text-white">B</span>
                     <span class="leading-tight"><span class="block text-base font-extrabold">BIIK</span><span class="block text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-forest-800">FarmSuite</span></span>
                 </a>
-                <h1 id="reset-link-heading" class="text-2xl font-semibold tracking-tight text-forest-950">Reset your password</h1>
-                <p class="mt-2 text-sm leading-6 text-forest-800/70">Enter your account email and we’ll send a password reset link.</p>
+                <h1 id="reset-link-heading" class="text-2xl font-semibold tracking-tight text-forest-950">{{ __('biik.password_ui.reset_title') }}</h1>
+                <p class="mt-2 text-sm leading-6 text-forest-800/70">{{ __('biik.password_ui.reset_intro') }}</p>
                 @if (session('status'))
                     <p role="status" class="mt-5 rounded-xl bg-green-50 p-3 text-sm text-green-900">{{ session('status') }}</p>
                 @endif
@@ -19,12 +19,12 @@
                 <form method="POST" action="{{ route('password.email') }}" class="mt-7 space-y-5">
                     @csrf
                     <div>
-                        <label for="email" class="form-label">Email address</label>
+                        <label for="email" class="form-label">{{ __('biik.password_ui.email') }}</label>
                         <input id="email" name="email" type="email" value="{{ old('email') }}" autocomplete="email" required autofocus class="form-input">
                     </div>
-                    <button type="submit" class="button button-primary w-full">Send reset link</button>
+                    <button type="submit" class="button button-primary w-full">{{ __('biik.password_ui.send_link') }}</button>
                 </form>
-                <p class="mt-7 text-center text-sm"><a href="{{ route('login') }}" class="font-semibold text-forest-800 underline underline-offset-4">Return to log in</a></p>
+                <p class="mt-7 text-center text-sm"><a href="{{ route('login') }}" class="font-semibold text-forest-800 underline underline-offset-4">{{ __('biik.password_ui.return_login') }}</a></p>
             </section>
         </div>
     </div>

@@ -54,6 +54,10 @@
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
     }
+
+    [x-cloak] {
+        display: none !important;
+    }
 }
 
 .site-container {
@@ -612,3 +616,4 @@
         font-size: 0.67rem;
     }
 }
+ [x-cloak] { display: none !important; }

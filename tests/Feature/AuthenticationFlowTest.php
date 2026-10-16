@@ -39,7 +39,7 @@ class AuthenticationFlowTest extends TestCase
     {
         $this->get(route('login'))
             ->assertOk()
-            ->assertSee('Log in to your account')
+            ->assertSee('Log in')
             ->assertSee('Remember me')
             ->assertSee('Forgot password?')
             ->assertSee('Show password');
@@ -61,8 +61,8 @@ class AuthenticationFlowTest extends TestCase
             ->assertOk()
             ->assertSee('No modules are available yet')
             ->assertSee('Basic User')
-            ->assertSee('My Profile')
-            ->assertSee('Log Out');
+            ->assertSee('Profile')
+            ->assertSee('Sign out');
 
         $this->get(route('login'))
             ->assertRedirect(route('dashboard'));

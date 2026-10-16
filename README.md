@@ -1,73 +1,132 @@
 # BIIK FarmSuite
 
-BIIK FarmSuite is a Laravel application for organizing pig-farm records. It provides the public product site, verified account registration, login and password recovery, role-based portals, animal and pen records, operational records, stock and sales workflows, and database-backed reports.
+BIIK FarmSuite is a Laravel application for organizing pig-farm operations. It connects animal and pen records with breeding, farrowing, piglet, health, feed, inventory, customer, supplier, purchase, sale, expense, and reporting workflows. The public landing page describes the product; farm records are available only to authenticated, authorized users.
 
-## Intended users and access
+## Project overview and features
 
-- **Visitors** can view the landing page and register or sign in.
-- **Basic users** receive the `basic-user` role on registration. They can access their verified, active account dashboard and only the farm modules granted to their roles.
-- **Administrators** can search users, activate or deactivate non-admin accounts, assign and revoke non-admin roles, and configure module permissions. Administrator access is provisioned by an operator from the command line after email verification; it is never selectable during registration or assignable in the user interface.
+- Laravel authentication with registration, email verification, password recovery, rate-limited login, active-account checks, and CSRF-protected session logout.
+- Protected administrator access and role/permission-based farm-user access, powered by Spatie Laravel Permission and the FarmSuite Permission Catalog.
+- Administrator User Management with search, role and status filters, read-only details, create/edit dialogs, optional profile pictures, role assignment, account activation, and invitation resend.
+- Individual profile management for contact details, language preference, and profile-picture upload, replacement, and removal.
+- JPEG, PNG, and WebP profile pictures are content-validated (2 MB maximum) and stored in a MySQL `LONGBLOB` column. Authenticated picture delivery is private and limited to the account owner or an authorized user administrator. Ordinary user queries omit the BLOB.
+- Account invitations send a password-reset setup link after the user and role have been persisted. No shared or plaintext password is created or emailed. Mail failures are logged without deleting the account and are shown to the administrator; an authorized administrator can resend the invitation.
+- Animal and pen management with identification, breed/category choices, acquisition information, capacity checks, details, assignment, and history-preserving archive.
+- Piglet, breeding, farrowing, health/veterinary, feed, mortality, inventory, customer, supplier, purchase, sale, and expense records with searchable paginated pages, validation, details, and authorized actions.
+- Transactional sale completion/cancellation, payment recording, purchase receiving, inventory adjustment, and feed consumption. Inventory changes are journaled in stock movements and guarded against negative stock and duplicate receipt/sale events.
+- Database-backed operational and financial reports, date filters, and CSV export.
+- Responsive, permission-filtered sidebar with active-route highlighting, keyboard-operable groups, and a mobile drawer. The account controls contain Profile, Sign out, and the language selector; the sidebar only links to implemented pages.
+- English and Filipino language selection. Guest choices are stored in the session; authenticated preferences are stored on the user and restored on later requests.
+- Audit trail for supported account, authorization, authentication, and farm operations.
 
-## Current features
+### Data model boundaries
 
-- Responsive BIIK FarmSuite landing page with configurable contact details.
-- Registration with password confirmation and strength validation.
-- Laravel email verification links and password-reset notifications.
-- Session-based login with rate limiting, active-account checks, and secure logout.
-- Role-guarded admin and basic-user dashboards.
-- A shared, responsive dashboard with permission-filtered cards and database-backed summaries.
-- Database-backed animal registration, searchable/paginated animal records, details, acquisition and status fields, updates, and history-preserving archive.
-- Database-backed pen management with searchable/paginated records, details, capacity/location/status management, safe deletion, and capacity enforcement for animal assignment.
-- Database-backed piglet, litter/farrowing, breeding, health, feeding, mortality, inventory, customer, supplier, purchase, sales, and expense record workflows with search, pagination, details, validation, and protected archival/finalization.
-- Transactional animal sales, purchase receiving, inventory adjustments, and feed consumption with stock movement history and sale payment records.
-- Date-range Farm Reports with animal, piglet, breeding, farrowing, health, mortality, feed, inventory, sales, purchase, and expense summaries and CSV export.
-- A personal profile page for editing the authenticated user's name, email, phone, and address; changed email requires reverification.
-- Database-backed role search, editing, membership review, and grouped permission matrix.
-- A centralized, idempotently seeded permission catalog for farm modules, business records, reports, users, roles, permissions, and audit logs.
-- User activation, non-admin role management, and effective-permission review.
-- Granular backend permission checks for farm module routes and sensitive Livewire actions.
-- Admin-only, searchable and filterable audit trail for authentication, registration, role changes, and account activation.
-- Farm records are shared across authorized users; creator and updater IDs are recorded where supported.
+Animals and pens have dedicated relational tables. Other operational records currently use a shared `farm_records` table for common typed fields and validated module-specific JSON data. Categories and breeds are selected from persisted lookup records; the existing animal schema stores their selected names as strings rather than foreign keys. The design supports the current operational screens but is not a fully normalized ERP.
 
-## Requirements
+Current workflow limits:
 
-- PHP 8.2 or later with Laravel-required extensions, including PDO MySQL and SQLite for tests.
-- Composer 2.
-- Node.js and npm.
-- MySQL 8.0 or a compatible MySQL server.
+- A purchase has one inventory item; a sale has one eligible animal or inventory item. Separate multi-line invoice entities are not implemented.
+- Farrowing records are the litter/outcome records; there is no separate litter table.
+- Piglet weight observations and weaning dates can be included in the piglet record data, but dedicated longitudinal weight, transfer, and weaning ledgers are not implemented as separate tables or workflows.
+- Pregnancy outcome information is stored with breeding records; there is no separate pregnancy-monitoring entity.
+- Feeding stock and consumption are recorded, but no generated feeding-schedule engine is available.
+- Expense attachments, profile-picture history, refund reconciliation for paid-sale cancellation, and configurable System Settings pages are not implemented.
+
+## System process
+
+1. An operator registers and verifies an account, then provisions the first administrator through the protected CLI command below. Administrator access is not assignable in the user interface.
+2. The administrator signs in, configures non-admin roles and module permissions, and creates farm-user accounts in the User Management dialog.
+3. FarmSuite persists the account, role, and optional validated profile-picture BLOB. It generates a password-reset token and sends an invitation after the account transaction commits.
+4. The invited user sets a personal password using the expiring link, signs in, and completes email verification when required.
+5. The shared dashboard and responsive sidebar show only modules that the account is allowed to access. Routes and Livewire mutations independently authorize sensitive operations.
+6. Authorized farm users register animals and pens, record breeding and farrowing, and relate piglet records to sows and farrowing outcomes.
+7. Users record health, feed stock and consumption, mortality, and inventory movements. Purchases update inventory only when received; sales change stock or animal status only when completed.
+8. Users maintain customer and supplier records, purchases, sales/payments, and expenses. Reports aggregate persisted records and distinguish sales revenue, purchases, and expenses; revenue is not labelled as profit.
+9. Users manage their own allowed profile details, language preference, and picture, then sign out through the protected POST endpoint.
+
+## Technology stack
+
+- PHP 8.3.2 CLI and Laravel Framework 12.70.0
+- Livewire 3.8.10
+- Blade templates
+- Tailwind CSS 4.3.3 with Vite 7.3.7
+- MySQL (InnoDB) for deployments; SQLite in-memory for feature tests
+- Spatie Laravel Permission 6.25.0
+- PHPUnit 11.5.57 and Laravel Pint
+- Node.js 23.1.0 and npm 11.6.2 for the verified frontend build
+
+The development environment used for verification also had PHPUnit 11, Node/npm as declared in the project lockfile, and Laravel Pint. Composer and npm lockfiles pin all other dependency versions.
 
 ## Installation
 
-Create a MySQL database named `biikfarmsuite`, then from the project directory run:
+Requirements: PHP with PDO MySQL and SQLite, Composer 2, Node.js/npm, and MySQL 8 or a compatible server.
 
 ```powershell
 composer install
 Copy-Item .env.example .env
 php artisan key:generate
 npm ci
-npm run build
 ```
 
-Configure `.env` with the database host, database name, username, and password for your local MySQL instance. Then apply the additive migrations and seed the standard roles and permissions:
+Create a MySQL database, then configure `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, and `DB_PASSWORD` in `.env`. Configure mail before sending invitations. Apply additive migrations and seed roles/permissions:
 
 ```powershell
 php artisan migrate
-php artisan db:seed
+php artisan db:seed --class=RolePermissionSeeder
+npm run build
+php artisan serve
 ```
 
-The additive migrations add Spatie role/permission tables, an `is_active` flag to users, append-only audit log storage, animal/pen fields, profile contact fields, shared farm-record storage, stock movements, and sale payments. They preserve existing farm records; do not use `migrate:fresh` or `db:wipe` against a database containing farm data.
+The application is then available at `http://127.0.0.1:8000`. Do not use `migrate:fresh`, `db:wipe`, or destructive resets on a database that contains operational data. The FarmSuite migrations are additive and preserve farm records on rollback.
 
-Start the development services with:
+Provision an administrator only after a normal account has registered and verified its email:
 
 ```powershell
-composer run dev
+php artisan farmsuite:provision-admin verified-user@example.test
 ```
 
-The Laravel development server is available at `http://127.0.0.1:8000`.
+The command prompts for confirmation and does not create a user or set a password. The `admin` role is protected and cannot be assigned through User Management.
 
-## Email configuration
+## Demo data
 
-Laravel's mail configuration reads SMTP settings from environment variables. For a deployment, configure the SMTP transport and credentials in `.env`, for example:
+Demo data is deliberately not part of the default `DatabaseSeeder`. Run it explicitly in a local or testing environment after migrations:
+
+```powershell
+php artisan db:seed --class=DemoFarmDataSeeder
+```
+
+Demo seeding is rejected outside `local`/`testing` unless `FARMSUITE_ALLOW_DEMO_SEEDING=true` is explicitly configured for a dedicated demo environment. Do not enable it in production. Demo records use deterministic `DEMO-` identifiers and `demo_batch=farmsuite-2026-01` metadata. The seeder uses `firstOrCreate`, wraps generation in a transaction, does not delete unrelated records, and does not create users, credentials, roles, or permissions.
+
+The seeder prints an entity/sub-module count table with a minimum target, actual demo count, and relationship check. It creates valid animal/pen assignments; breeding records tied to female sows and male boars; farrowing/litter outcomes tied to the same sow and breeding record; seven live piglet records for each litter's seven born-alive piglets; health records tied to animals; feed stock and consumption with stock movements; mortality events tied to animals whose status is updated; customer/supplier-linked sales and purchases with inventory movements; sale payments; and expenses.
+
+Representative expected counts on a fresh demo dataset:
+
+| Entity / sub-module | Minimum | Demo count |
+|---|---:|---:|
+| Pens | 30 | 30 |
+| Animals | 30 | 90 (30 sows, 30 boars, 30 mortality-history animals) |
+| Piglet registry records | 30 | 210 (7 living piglets for each of 30 farrowings) |
+| Breeding records | 30 | 30 |
+| Farrowing/litter outcome records | 30 | 30 |
+| Health records | 30 | 30 |
+| Feed stock records | 30 | 30 |
+| Feed consumption records | 30 | 30 |
+| Mortality events | 30 | 30 |
+| Inventory items | 30 | 30 |
+| Customers | 30 | 30 |
+| Suppliers | 30 | 30 |
+| Received purchases | 30 | 30 |
+| Completed sales | 30 | 30 |
+| Sale payment records | 30 | 30 |
+| Farm expenses | 30 | 30 |
+| Stock movements | 30 | 150 (opening, receipt, sale, and feed-use events) |
+| Breed lookup values | Useful set | 6 |
+| Animal-category lookup values | Useful set | 6 |
+
+The seeder's console table is the authoritative actual-count report for the target database. Pregnancy outcome, litter, weight/weaning observations, and invoice line values use the current record data model rather than separate entities; there are no separate pregnancy-monitoring, litter, weight-history, purchase-line, or sale-line tables to count.
+
+## Email setup
+
+Local development defaults to `MAIL_MAILER=log`, which writes rendered mail to the application log. For real invitations, configure values from your mail provider in `.env`; do not commit provider credentials:
 
 ```dotenv
 MAIL_MAILER=smtp
@@ -80,63 +139,44 @@ MAIL_FROM_ADDRESS=
 MAIL_FROM_NAME="${APP_NAME}"
 ```
 
-Use values from your mail provider; for implicit TLS, use the scheme and port specified by the provider (commonly `smtps` on port 465). Do not commit SMTP credentials. Local development may use `MAIL_MAILER=log` to inspect generated verification and reset notifications in the application log. Branded notification templates and additional account-security email events are planned for a later phase.
+Use the TLS scheme and port provided by the mail service. The account invitation is sent synchronously after persistence, so no queue worker is required for this feature. Delivery exceptions leave the user intact and produce a visible resend path. Password-reset token expiry is controlled by Laravel's `config/auth.php` settings. Confirm SMTP delivery in staging before onboarding users.
 
-Optional public contact information is configured with `FARMSUITE_CONTACT_EMAIL`, `FARMSUITE_CONTACT_PHONE`, and `FARMSUITE_CONTACT_ADDRESS`. Unset values are not displayed.
+## Localization
 
-## Provision the first administrator safely
+The supported locale codes are `en` and `fil`. The authenticated header selector updates both the user's `locale` preference and session. The guest selector stores the locale in session; a saved authenticated preference takes precedence after sign-in. Unsupported values are rejected.
 
-1. Register a normal account through `/register`.
-2. Verify the account using the email link.
-3. After migrations and role seeding, an authorized operator runs:
-
-   ```powershell
-   php artisan farmsuite:provision-admin verified-user@example.com
-   ```
-
-4. Confirm the exact verified account when prompted.
-
-The command refuses missing, unverified, or inactive accounts and does not set a password or create a user. There are no hardcoded production admin credentials. Administrators can grant non-admin roles and permissions through the portal; granting administrator access remains an operator-only CLI task.
-
-Standard roles (`admin`, `basic-user`, `farm-supervisor`, `farm-staff`, and `sales-staff`) are seeded only if absent. The `admin` role represents protected Super Admin access; it is excluded from the role editor and user assignment controls. Do not remove or demote the last active administrator. The user-management UI prevents deactivating any administrator, and the admin role cannot be edited or deleted through the UI.
-
-Open `/admin/roles` to search and manage non-admin roles; `/admin/permissions` to review the permission catalog; and `/admin/audit-logs` to review security and access events. Permission changes are validated against the server-side catalog.
-
-Both administrators and basic users land on `/dashboard`. The dashboard lists implemented pages only when the user has the corresponding view permission. Farm modules use `/modules/{module}`; the profile is `/profile`. User Management, Roles and Permissions, Permission Catalog, and Audit Trail are available to administrators. `/admin/dashboard` remains as a compatibility redirect to the shared dashboard.
+Application translations live in `lang/en/biik.php` and `lang/fil/biik.php`, with Filipino authentication and validation strings in `lang/fil/auth.php` and `lang/fil/validation.php`. Add maintained translations under the corresponding locale folder and reference them with Laravel's `__()`/`trans()` helpers. Do not translate route names, module keys, or permission codes.
 
 ## Tests and quality checks
 
-Run the test suite:
+Run all tests:
 
 ```powershell
 php artisan test
 ```
 
-Optional checks used during development:
+Useful focused checks and build commands:
 
 ```powershell
-vendor/bin/pint --test
+php artisan test --filter=DemoFarmDataSeederTest
+php artisan test --filter=UserManagementEnhancementTest
+php artisan test --filter=FarmManagementTest
+vendor\bin\pint --test
 npm run build
-composer audit
 ```
 
-Feature tests use an in-memory SQLite database and do not migrate or modify the configured MySQL database.
+Feature tests use SQLite and do not modify the configured MySQL data. Demo seeder verification asserts minimum entity counts, connected relationships, repeatability, and preservation of unrelated records.
 
-## Security and privacy
+## Troubleshooting
 
-- Passwords are hashed by Laravel's configured hasher and are never stored in plaintext.
-- Verification links use Laravel's signed URL mechanism; password resets use Laravel's password broker and expiring reset tokens.
-- Registration assigns the basic-user role on the server; role and permission values are not accepted from the registration form.
-- Admin pages and Livewire mutations enforce authorization on the server. The protected `admin` role is treated as Super Admin by Laravel's authorization gate, so it retains access if its explicit permission grants are stale or incomplete. Module routes use backend permission middleware in addition to dashboard navigation filtering; non-admin users remain restricted to their assigned permissions.
-- Inactive accounts cannot authenticate or access the protected workspace. Administrator accounts cannot be deactivated through user management, and an administrator cannot deactivate their own account there.
-- Audit metadata is allowlisted by call sites and recursively strips keys containing password, token, session, secret, authorization, or credential. Audit rows have no update timestamp and the Eloquent model rejects ordinary updates and deletes.
-- No user-specific permission overrides are enabled. Users inherit effective permissions from their roles.
-- Shared farm records use one database table/model with typed common fields and validated module-specific data; animal and pen records use their own relational tables. Creator/updater attribution is recorded where supported.
-- Farm records, device location, contacts, camera, and notification permissions are not collected or exposed by this phase.
-- Keep `.env`, SMTP credentials, and application keys private. Use HTTPS and secure cookie settings in production.
+- **Database connection/migration errors:** verify the database exists and `.env` DB settings are correct, then run `php artisan config:clear` and `php artisan migrate:status`. Migrations preserve operational records; never repair schema by wiping the database.
+- **Invitation not received:** set a real SMTP mailer and sender, check Laravel logs, and use the authorized Resend invitation action. Password setup links expire; resending generates a new token.
+- **Mail configuration changes do not apply:** run `php artisan config:clear` locally or rebuild the configuration cache after updating production environment variables.
+- **User cannot access a module:** verify the account is active and verified, inspect its roles and the permission catalog, then grant the required non-admin permission. Direct routes and Livewire actions still enforce authorization.
+- **Assets look unstyled or stale:** run `npm ci` and `npm run build`; during development run `npm run dev`.
+- **Demo seed reports an incomplete relationship:** check the demo-batch identifiers in `animals`, `pens`, `farm_records`, `stock_movements`, and `sale_payments`. Re-running the seeder is safe for the same demo identifiers.
+- **Demo seeding is blocked:** it is enabled by default only in `local` and `testing`. For a dedicated demo deployment only, explicitly set `FARMSUITE_ALLOW_DEMO_SEEDING=true`, clear cached config, and unset it afterward.
 
-## Scope notes
+## Security and data handling
 
-Operational modules share a typed `farm_records` table and reusable Livewire CRUD interface. Animal and Pen Management have dedicated models and pages. This is an initial operational workflow, not a fully normalized ERP: sales support one animal or inventory item per sale record, purchases support one inventory item per purchase record, and stock/payments are separately journaled.
-
-Specialized workflows not yet implemented include longitudinal piglet weight and transfer records, generated feeding schedules, multi-line invoices, profile photo uploads, expense attachments, and reconciliation/refund handling for cancelling a sale with recorded payments. Categories and breeds are managed as records but are not yet normalized foreign-key selectors on animals. Plan these extensions before relying on this release for those workflows.
+Passwords are hashed with Laravel's hasher. The application does not email default passwords. The privileged admin role cannot be assigned from registration, user editing, or the role editor. Profile image requests require authentication and authorization, return private non-cacheable content, and set `X-Content-Type-Options: nosniff`. Audit metadata avoids passwords, tokens, sessions, and image contents.

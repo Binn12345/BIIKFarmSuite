@@ -3,7 +3,6 @@
 namespace App\Support;
 
 use App\Models\User;
-use App\Support\FarmRecordCatalog;
 
 class DashboardModules
 {
@@ -89,10 +88,29 @@ class DashboardModules
         }
 
         foreach ($modules as $category => $items) {
-            $modules[$category] = array_values(array_filter(
+            $modules[$category] = array_values(array_map(function (array $module): array {
+                $moduleKey = str($module['route'])->after('modules.')->toString();
+                $titleKey = str_starts_with($module['route'], 'admin.')
+                    ? 'biik.module_names.admin.'.str($module['route'])->after('admin.')->toString()
+                    : 'biik.modules.'.$moduleKey.'.title';
+                $descriptionKey = 'biik.modules.'.$moduleKey.'.description';
+                $module['title'] = __($titleKey) === $titleKey
+                    ? __(str_starts_with($module['route'], 'modules.') ? 'biik.module_names.modules.'.$moduleKey : 'biik.'.$module['route'])
+                    : __($titleKey);
+                if (str_starts_with($module['route'], 'modules.') && __($descriptionKey) !== $descriptionKey) {
+                    $module['description'] = __($descriptionKey);
+                } elseif (str_starts_with($module['route'], 'admin.')) {
+                    $adminDescriptionKey = 'biik.modules.admin-'.str($module['route'])->after('admin.')->toString().'.description';
+                    if (__($adminDescriptionKey) !== $adminDescriptionKey) {
+                        $module['description'] = __($adminDescriptionKey);
+                    }
+                }
+
+                return $module;
+            }, array_filter(
                 $items,
                 fn (array $module) => $user->can($module['permission']),
-            ));
+            )));
         }
 
         return array_filter($modules, fn (array $items) => $items !== []);

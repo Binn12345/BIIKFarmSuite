@@ -117,7 +117,7 @@ class PenIndex extends Component
 
         $this->selectedPenId = null;
         $this->resetForm();
-        session()->flash('status', 'Pen record saved.');
+        session()->flash('status', __('biik.pen_record_saved'));
     }
 
     public function deletePen(int $penId): void
@@ -139,7 +139,7 @@ class PenIndex extends Component
             $this->selectedPenId = null;
         }
 
-        session()->flash('status', 'Pen deleted.');
+        session()->flash('status', __('biik.pen_deleted'));
     }
 
     public function closePanels(): void
@@ -174,6 +174,6 @@ class PenIndex extends Component
             'selectedPen' => $this->selectedPenId
                 ? Pen::query()->with(['animals' => fn ($query) => $query->orderBy('tag_number')])->find($this->selectedPenId)
                 : null,
-        ])->layout('layouts.app', ['title' => 'Pens Management']);
+        ])->layout('layouts.app', ['title' => __('biik.modules.pens.title')]);
     }
 }

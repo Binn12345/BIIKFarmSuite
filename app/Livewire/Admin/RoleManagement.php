@@ -147,7 +147,7 @@ class RoleManagement extends Component
         $this->selectedRoleId = $role->id;
         $this->name = $role->name;
         $this->permissions = $role->permissions()->pluck('name')->all();
-        session()->flash('status', 'Role permissions saved.');
+        session()->flash('status', __('biik.role_permissions_saved'));
     }
 
     public function deleteRole(int $roleId): void
@@ -170,7 +170,7 @@ class RoleManagement extends Component
         ]);
         $role->delete();
         $this->reset('editingRoleId', 'name', 'permissions');
-        session()->flash('status', 'Role deleted.');
+        session()->flash('status', __('biik.role_deleted'));
     }
 
     public function render()
@@ -198,6 +198,6 @@ class RoleManagement extends Component
             'roles' => $roles,
             'selectedRole' => $selectedRole,
             'modules' => PermissionCatalog::modules(),
-        ])->layout('layouts.app', ['title' => 'Role and permission management']);
+        ])->layout('layouts.app', ['title' => __('biik.admin_ui.roles')]);
     }
 }

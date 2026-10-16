@@ -3,6 +3,7 @@
 namespace App\Livewire\Farm;
 
 use App\Models\Animal;
+use App\Models\FarmRecord;
 use App\Models\Pen;
 use App\Services\AuditLogger;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -101,6 +102,12 @@ class AnimalIndex extends Component
             : null;
         abort_if($animal && in_array($animal->status, ['archived', 'sold', 'deceased'], true), 409, 'This animal is not editable in Animal Management.');
 
+        $breedRule = Rule::exists('farm_records', 'title')->where(fn ($query) => $query
+            ->where('module', 'breeds')
+            ->where('status', 'active'));
+        $categoryRule = Rule::exists('farm_records', 'title')->where(fn ($query) => $query
+            ->where('module', 'animal-categories')
+            ->where('status', 'active'));
         $validated = $this->validate([
             'tag_number' => [
                 'required',
@@ -109,8 +116,8 @@ class AnimalIndex extends Component
                 Rule::unique('animals', 'tag_number')->ignore($animal?->id),
             ],
             'name' => ['nullable', 'string', 'max:100'],
-            'breed' => ['nullable', 'string', 'max:100'],
-            'category' => ['nullable', 'string', 'max:100'],
+            'breed' => ['nullable', 'string', 'max:100', ...($animal && $this->breed === $animal->breed ? [] : [$breedRule])],
+            'category' => ['nullable', 'string', 'max:100', ...($animal && $this->category === $animal->category ? [] : [$categoryRule])],
             'sex' => ['required', Rule::in(['female', 'male'])],
             'birth_date' => ['nullable', 'date', 'before_or_equal:today'],
             'acquisition_source' => ['nullable', 'string', 'max:150'],
@@ -162,7 +169,7 @@ class AnimalIndex extends Component
 
         $this->selectedAnimalId = null;
         $this->resetForm();
-        session()->flash('status', 'Animal record saved.');
+        session()->flash('status', __('biik.animal_record_saved'));
     }
 
     public function archiveAnimal(int $animalId): void
@@ -182,7 +189,7 @@ class AnimalIndex extends Component
             $this->selectedAnimalId = null;
         }
 
-        session()->flash('status', 'Animal archived; its history has been retained.');
+        session()->flash('status', __('biik.animal_archived'));
     }
 
     public function closePanels(): void
@@ -220,9 +227,11 @@ class AnimalIndex extends Component
                 ->where('status', 'active')
                 ->orderBy('name')
                 ->get(),
+            'breeds' => FarmRecord::query()->where('module', 'breeds')->where('status', 'active')->orderBy('title')->pluck('title'),
+            'categories' => FarmRecord::query()->where('module', 'animal-categories')->where('status', 'active')->orderBy('title')->pluck('title'),
             'selectedAnimal' => $this->selectedAnimalId
                 ? Animal::query()->with(['pen', 'creator', 'updater'])->find($this->selectedAnimalId)
                 : null,
-        ])->layout('layouts.app', ['title' => 'Animal Management']);
+        ])->layout('layouts.app', ['title' => __('biik.modules.animals.title')]);
     }
 }
