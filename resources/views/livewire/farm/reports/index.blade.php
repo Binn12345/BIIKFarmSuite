@@ -1,6 +1,5 @@
 <div class="min-h-screen bg-cream-50">
-    <header class="border-b border-forest-950/10 bg-white"><div class="site-container flex min-h-20 items-center justify-between gap-5"><a href="{{ route('dashboard') }}" class="brand-mark"><span class="grid h-10 w-10 place-items-center rounded-xl bg-forest-900 text-sm font-extrabold text-white">B</span><span class="font-extrabold">BIIK <span class="font-normal">{{ __('biik.farm_reports') }}</span></span></a><a href="{{ route('dashboard') }}" class="button button-outline !px-5 !py-2.5">{{ __('biik.dashboard_home') }}</a></div></header>
-    <section class="site-container py-12 sm:py-16">
+    <section class="site-container py-8 sm:py-10">
         <p class="eyebrow">{{ __('biik.reports') }}</p><h1 class="mt-3 text-3xl font-semibold tracking-tight text-forest-950 sm:text-4xl">{{ __('biik.farm_reports') }}</h1><p class="mt-2 text-forest-800/75">{{ __('biik.report_intro') }}</p>
         <div class="mt-7 grid gap-4 rounded-2xl border border-forest-950/10 bg-white p-5 sm:grid-cols-3 sm:items-end">
             <div><label for="report-from" class="form-label">{{ __('biik.from') }}</label><input id="report-from" type="date" wire:model.live="from" class="form-input">@error('from')<p class="text-sm text-red-700">{{ $message }}</p>@enderror</div>

@@ -5,6 +5,7 @@ namespace App\Support;
 use App\Models\Animal;
 use App\Models\FarmRecord;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 
 class DashboardSummary
 {
@@ -17,58 +18,59 @@ class DashboardSummary
 
         if ($user->can('animals.view')) {
             $summary[] = [
-                'label' => 'Active animals',
+                'label' => __('biik.dashboard_summaries.active_animals'),
                 'value' => (string) Animal::query()->where('status', 'active')->count(),
-                'detail' => 'Current animal inventory',
+                'detail' => __('biik.dashboard_summaries.current_inventory'),
             ];
         }
 
         if ($user->can('piglets.view')) {
             $summary[] = [
-                'label' => 'Piglet records',
+                'label' => __('biik.dashboard_summaries.piglets'),
                 'value' => (string) FarmRecord::query()->where('module', 'piglets')->count(),
-                'detail' => 'Registered piglets',
+                'detail' => __('biik.dashboard_summaries.registered_piglets'),
             ];
         }
 
         if ($user->can('farrowing.view')) {
+            $expectedDateExpression = DB::connection()->getDriverName() === 'sqlite'
+                ? "json_extract(data, '$.expected_date')"
+                : "JSON_UNQUOTE(JSON_EXTRACT(data, '$.expected_date'))";
             $upcoming = FarmRecord::query()
                 ->where('module', 'breeding')
                 ->where('status', 'confirmed')
-                ->get(['data'])
-                ->filter(fn (FarmRecord $record) => ($date = data_get($record->data, 'expected_date'))
-                    && $date >= now()->toDateString()
-                    && $date <= now()->addDays(30)->toDateString())
+                ->whereRaw("$expectedDateExpression BETWEEN ? AND ?", [now()->toDateString(), now()->addDays(30)->toDateString()])
                 ->count();
             $summary[] = [
-                'label' => 'Upcoming farrowing',
+                'label' => __('biik.dashboard_summaries.upcoming_farrowing'),
                 'value' => (string) $upcoming,
-                'detail' => 'Confirmed records in the next 30 days',
+                'detail' => __('biik.dashboard_summaries.next_30_days'),
             ];
         }
 
         if ($user->can('inventory.view')) {
-            $lowStock = FarmRecord::query()
-                ->where('module', 'inventory')
-                ->get(['quantity', 'data'])
-                ->filter(fn (FarmRecord $item) => (float) data_get($item->data, 'min_quantity', 0) > (float) $item->quantity)
+            $reorderExpression = DB::connection()->getDriverName() === 'sqlite'
+                ? "CAST(COALESCE(json_extract(data, '$.min_quantity'), json_extract(data, '$.reorder_level'), 0) AS REAL)"
+                : "CAST(COALESCE(JSON_UNQUOTE(JSON_EXTRACT(data, '$.min_quantity')), JSON_UNQUOTE(JSON_EXTRACT(data, '$.reorder_level')), 0) AS DECIMAL(14,3))";
+            $lowStock = FarmRecord::query()->where('module', 'inventory')
+                ->whereRaw("$reorderExpression > quantity")
                 ->count();
             $summary[] = [
-                'label' => 'Low-stock items',
+                'label' => __('biik.dashboard_summaries.low_stock'),
                 'value' => (string) $lowStock,
-                'detail' => 'Below configured reorder levels',
+                'detail' => __('biik.analytics.below_reorder'),
             ];
         }
 
         if ($user->can('sales.view')) {
             $summary[] = [
-                'label' => 'Sales revenue this month',
+                'label' => __('biik.dashboard_summaries.sales_revenue'),
                 'value' => number_format((float) FarmRecord::query()
                     ->where('module', 'sales')
                     ->where('status', 'completed')
                     ->whereBetween('record_date', [now()->startOfMonth()->toDateString(), now()->toDateString()])
                     ->sum('amount'), 2),
-                'detail' => 'Revenue, not profit',
+                'detail' => __('biik.analytics.revenue_not_profit'),
             ];
         }
 

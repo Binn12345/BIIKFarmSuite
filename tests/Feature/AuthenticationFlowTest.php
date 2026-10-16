@@ -59,9 +59,11 @@ class AuthenticationFlowTest extends TestCase
         $this->actingAs($user)
             ->get(route('dashboard'))
             ->assertOk()
-            ->assertSee('No modules are available yet')
-            ->assertSee('Basic User')
-            ->assertSee('Profile')
+            ->assertSee('Welcome,')
+            ->assertSee('Recent farm records')
+            ->assertSee('No recent farm records to show.')
+            ->assertSee('My Profile')
+            ->assertSee(route('account.settings'))
             ->assertSee('Sign out');
 
         $this->get(route('login'))

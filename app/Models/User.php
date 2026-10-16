@@ -30,6 +30,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'phone',
         'address',
         'locale',
+        'theme_background',
+        'theme_accent',
         'password',
     ];
 
@@ -79,6 +81,8 @@ class User extends Authenticatable implements MustVerifyEmail
                 'users.phone',
                 'users.address',
                 'users.locale',
+                'users.theme_background',
+                'users.theme_accent',
             ]);
         });
     }

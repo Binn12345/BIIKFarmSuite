@@ -28,11 +28,6 @@
             <div><label for="profile-email" class="form-label">{{ __('biik.email_address') }}</label><input id="profile-email" type="email" wire:model="email" autocomplete="email" class="form-input">@error('email') <p role="alert" class="form-error">{{ $message }}</p> @enderror</div>
             <div><label for="profile-phone" class="form-label">{{ __('biik.contact_number') }}</label><input id="profile-phone" type="tel" wire:model="phone" autocomplete="tel" class="form-input">@error('phone') <p role="alert" class="form-error">{{ $message }}</p> @enderror</div>
             <div class="sm:col-span-2"><label for="profile-address" class="form-label">{{ __('biik.address') }}</label><textarea id="profile-address" wire:model="address" autocomplete="street-address" rows="3" class="form-input"></textarea>@error('address') <p role="alert" class="form-error">{{ $message }}</p> @enderror</div>
-            <div class="sm:col-span-2">
-                <label for="profile-locale" class="form-label">{{ __('biik.language') }}</label>
-                <select id="profile-locale" wire:model="locale" class="form-input"><option value="en">English</option><option value="fil">Filipino</option></select>
-                @error('locale') <p role="alert" class="form-error">{{ $message }}</p> @enderror
-            </div>
             <div class="sm:col-span-2"><button type="submit" wire:loading.attr="disabled" wire:target="save,picture" class="button button-primary"><span wire:loading.remove wire:target="save">{{ __('biik.save_changes') }}</span><span wire:loading wire:target="save">{{ __('biik.saving') }}</span></button></div>
         </form>
         <aside class="h-fit rounded-2xl border border-forest-950/10 bg-white p-6">

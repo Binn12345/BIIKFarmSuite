@@ -1,11 +1,5 @@
 <div class="min-h-screen bg-cream-50">
-    <header class="border-b border-forest-950/10 bg-white">
-        <div class="site-container flex min-h-20 items-center justify-between gap-5">
-            <a href="{{ route('dashboard') }}" class="brand-mark"><span class="grid h-10 w-10 place-items-center rounded-xl bg-forest-900 text-sm font-extrabold text-white">B</span><span class="font-extrabold">BIIK <span class="font-normal">{{ __('biik.modules.pens.title') }}</span></span></a>
-            <a href="{{ route('dashboard') }}" class="button button-outline !px-5 !py-2.5">{{ __('biik.pen_page.dashboard') }}</a>
-        </div>
-    </header>
-    <section class="site-container py-12 sm:py-16">
+    <section class="site-container py-8 sm:py-10">
         <p class="eyebrow">{{ __('biik.pen_page.farm_management') }}</p>
         <div class="mt-3 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
             <div>

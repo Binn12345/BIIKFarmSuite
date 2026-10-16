@@ -7,15 +7,17 @@ BIIK FarmSuite is a Laravel application for organizing pig-farm operations. It c
 - Laravel authentication with registration, email verification, password recovery, rate-limited login, active-account checks, and CSRF-protected session logout.
 - Protected administrator access and role/permission-based farm-user access, powered by Spatie Laravel Permission and the FarmSuite Permission Catalog.
 - Administrator User Management with search, role and status filters, read-only details, create/edit dialogs, optional profile pictures, role assignment, account activation, and invitation resend.
-- Individual profile management for contact details, language preference, and profile-picture upload, replacement, and removal.
+- Individual profile management for contact details and profile-picture upload, replacement, and removal.
 - JPEG, PNG, and WebP profile pictures are content-validated (2 MB maximum) and stored in a MySQL `LONGBLOB` column. Authenticated picture delivery is private and limited to the account owner or an authorized user administrator. Ordinary user queries omit the BLOB.
 - Account invitations send a password-reset setup link after the user and role have been persisted. No shared or plaintext password is created or emailed. Mail failures are logged without deleting the account and are shown to the administrator; an authorized administrator can resend the invitation.
 - Animal and pen management with identification, breed/category choices, acquisition information, capacity checks, details, assignment, and history-preserving archive.
 - Piglet, breeding, farrowing, health/veterinary, feed, mortality, inventory, customer, supplier, purchase, sale, and expense records with searchable paginated pages, validation, details, and authorized actions.
 - Transactional sale completion/cancellation, payment recording, purchase receiving, inventory adjustment, and feed consumption. Inventory changes are journaled in stock movements and guarded against negative stock and duplicate receipt/sale events.
 - Database-backed operational and financial reports, date filters, and CSV export.
-- Responsive, permission-filtered sidebar with active-route highlighting, keyboard-operable groups, and a mobile drawer. The account controls contain Profile, Sign out, and the language selector; the sidebar only links to implemented pages.
-- English and Filipino language selection. Guest choices are stored in the session; authenticated preferences are stored on the user and restored on later requests.
+- Responsive, permission-filtered sidebar with active-route highlighting, keyboard-operable groups, and a mobile drawer. The account dropdown contains My Profile, Settings, and POST-based Sign out; the sidebar only links to implemented pages.
+- Personal appearance settings with Soft Neutral, Clean White, and Cool Gray backgrounds and Blue, Teal, or Purple accents. Preferences persist on the user's account and apply across authenticated pages.
+- Role-specific dashboards: administrators see permission-gated persisted-data metrics, recent records, a monthly completed-sales line chart, and an animal-category comparison; farm users see a concise welcome, authorized summaries, and recent records rather than another module-link grid.
+- English/Filipino translation resources and legacy locale preference support remain available, but no custom language selector is displayed. Users may use browser-native page translation when their browser offers it; availability and activation depend on the browser.
 - Audit trail for supported account, authorization, authentication, and farm operations.
 
 ### Data model boundaries
@@ -41,7 +43,7 @@ Current workflow limits:
 6. Authorized farm users register animals and pens, record breeding and farrowing, and relate piglet records to sows and farrowing outcomes.
 7. Users record health, feed stock and consumption, mortality, and inventory movements. Purchases update inventory only when received; sales change stock or animal status only when completed.
 8. Users maintain customer and supplier records, purchases, sales/payments, and expenses. Reports aggregate persisted records and distinguish sales revenue, purchases, and expenses; revenue is not labelled as profit.
-9. Users manage their own allowed profile details, language preference, and picture, then sign out through the protected POST endpoint.
+9. Users manage their own permitted profile details, picture, and appearance preferences, then sign out through the protected POST endpoint.
 
 ## Technology stack
 
@@ -77,6 +79,12 @@ php artisan serve
 ```
 
 The application is then available at `http://127.0.0.1:8000`. Do not use `migrate:fresh`, `db:wipe`, or destructive resets on a database that contains operational data. The FarmSuite migrations are additive and preserve farm records on rollback.
+
+## Settings and dashboard analytics
+
+The account dropdown links to My Profile and the authenticated user's Settings page, then submits Sign out through the CSRF-protected POST logout route. Settings save only `theme_background` (`soft-neutral`, `clean-white`, `cool-gray`) and `theme_accent` (`blue`, `teal`, `purple`) on the signed-in user's record. The shared layout applies allow-listed CSS custom-property palettes to navigation, cards, forms, tables, and charts and updates the active page immediately after save. These preferences do not modify roles, permissions, or farm data.
+
+The administrator dashboard calculates total/active animals, active animals assigned to pens, piglet records, active customers, items below stored reorder levels, completed sales revenue, received purchases, recorded expenses, and period mortality when the current administrator has the corresponding module permissions. Sales charts include completed sales only. Purchase totals include received purchases; expenses and revenue remain separate metrics and neither is described as profit. SVG/CSS charts use grouped persisted records without adding a chart framework. Basic users receive their permission-filtered summaries and recent authorized records, without administrator metrics or duplicate module cards.
 
 Provision an administrator only after a normal account has registered and verified its email:
 
@@ -143,9 +151,9 @@ Use the TLS scheme and port provided by the mail service. The account invitation
 
 ## Localization
 
-The supported locale codes are `en` and `fil`. The authenticated header selector updates both the user's `locale` preference and session. The guest selector stores the locale in session; a saved authenticated preference takes precedence after sign-in. Unsupported values are rejected.
+English is the default interface language. The existing `en` and `fil` translation resources and locale middleware remain for compatibility with saved preferences, but FarmSuite does not render a custom language selector or translation button. Browser-native translation may be offered by supported browsers; FarmSuite does not activate or guarantee it.
 
-Application translations live in `lang/en/biik.php` and `lang/fil/biik.php`, with Filipino authentication and validation strings in `lang/fil/auth.php` and `lang/fil/validation.php`. Add maintained translations under the corresponding locale folder and reference them with Laravel's `__()`/`trans()` helpers. Do not translate route names, module keys, or permission codes.
+Application translation resources live in `lang/en/biik.php` and `lang/fil/biik.php`, with Filipino authentication and validation strings in `lang/fil/auth.php` and `lang/fil/validation.php`. Add maintained strings under the corresponding locale folder and reference them with Laravel's `__()`/`trans()` helpers. Do not translate route names, module keys, or permission codes.
 
 ## Tests and quality checks
 

@@ -4,7 +4,6 @@ namespace App\Livewire\Account;
 
 use App\Services\AuditLogger;
 use App\Support\ProfilePictureUpload;
-use Carbon\Carbon;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
@@ -23,8 +22,6 @@ class Profile extends Component
 
     public string $address = '';
 
-    public string $locale = 'en';
-
     public bool $removePicture = false;
 
     public bool $hasPicture = false;
@@ -38,7 +35,6 @@ class Profile extends Component
         $this->email = $user->email;
         $this->phone = $user->phone ?? '';
         $this->address = $user->address ?? '';
-        $this->locale = $user->locale ?? app()->getLocale();
         $this->hasPicture = $user->newQuery()->whereKey($user->id)->whereNotNull('profile_picture')->exists();
     }
 
@@ -50,7 +46,6 @@ class Profile extends Component
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
             'phone' => ['nullable', 'string', 'max:40'],
             'address' => ['nullable', 'string', 'max:2000'],
-            'locale' => ['required', 'in:en,fil'],
             'picture' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'removePicture' => ['boolean'],
         ]);
@@ -62,10 +57,8 @@ class Profile extends Component
             'email' => $emailChanged,
             'phone' => $validated['phone'] !== $user->phone,
             'address' => $validated['address'] !== $user->address,
-            'locale' => $validated['locale'] !== $user->locale,
         ]));
         $user->fill(array_intersect_key($validated, array_flip(['name', 'email', 'phone', 'address'])));
-        $user->locale = $validated['locale'];
         if ($image) {
             $user->profile_picture = $image['bytes'];
             $user->profile_picture_mime_type = $image['mime'];
@@ -79,10 +72,6 @@ class Profile extends Component
         $user->save();
         $this->hasPicture = $image !== null || (! $validated['removePicture'] && $this->hasPicture);
         $this->reset('picture', 'removePicture');
-        session()->put('locale', $validated['locale']);
-        app()->setLocale($validated['locale']);
-        Carbon::setLocale($validated['locale']);
-
         app(AuditLogger::class)->record('profile.updated', $user, [
             'changed_fields' => [...$before, ...(($image || $validated['removePicture']) ? ['profile_picture'] : [])],
         ]);

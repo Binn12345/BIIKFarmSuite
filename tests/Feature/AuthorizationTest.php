@@ -118,7 +118,7 @@ class AuthorizationTest extends TestCase
         $this->actingAs($user)
             ->get(route('dashboard'))
             ->assertOk()
-            ->assertSee('Basic User')
+            ->assertSee('Welcome,')
             ->assertSee('Animal Management')
             ->assertDontSee('User Management')
             ->assertDontSee('Piglet Records')

@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\ProfilePictureController;
 use App\Livewire\Account\Profile;
+use App\Livewire\Account\Settings;
 use App\Livewire\Admin\AuditLogIndex;
 use App\Livewire\Admin\RoleManagement;
 use App\Livewire\Admin\UserManagement;
@@ -12,7 +13,8 @@ use App\Livewire\Farm\AnimalIndex;
 use App\Livewire\Farm\FarmRecordIndex;
 use App\Livewire\Farm\FarmReportIndex;
 use App\Livewire\Farm\PenIndex;
-use App\Support\DashboardModules;
+use App\Models\FarmRecord;
+use App\Support\AdminDashboardAnalytics;
 use App\Support\DashboardSummary;
 use App\Support\FarmRecordCatalog;
 use App\Support\PermissionCatalog;
@@ -81,13 +83,24 @@ Route::get('/users/{user}/profile-picture', ProfilePictureController::class)
     ->name('users.profile-picture');
 
 Route::middleware(['auth', 'verified', 'account.active'])->group(function () {
-    Route::get('/dashboard', function () {
+    Route::get('/dashboard', function (Request $request) {
+        $user = $request->user();
+        $period = (int) $request->query('period', 6);
+
         return view('pages.dashboard', [
-            'modules' => DashboardModules::for(request()->user()),
-            'summary' => DashboardSummary::for(request()->user()),
+            'isAdmin' => $user->hasRole('admin'),
+            'summary' => $user->hasRole('admin') ? [] : DashboardSummary::for($user),
+            'analytics' => $user->hasRole('admin') ? AdminDashboardAnalytics::for($user, $period) : null,
+            'recentRecords' => $user->hasRole('admin') ? collect() : FarmRecord::query()
+                ->whereIn('module', collect(FarmRecordCatalog::modules())->keys()->filter(fn ($module) => $user->can($module.'.view')))
+                ->whereNotNull('record_date')
+                ->latest('record_date')
+                ->limit(5)
+                ->get(['id', 'module', 'title', 'reference', 'record_date', 'status']),
         ]);
     })->middleware('can:dashboard.view')->name('dashboard');
     Route::get('/profile', Profile::class)->name('account.profile');
+    Route::get('/settings', Settings::class)->name('account.settings');
 
     Route::prefix('admin')->name('admin.')->middleware('role:admin')->group(function () {
         Route::get('/dashboard', fn () => redirect()->route('dashboard'))->name('dashboard');

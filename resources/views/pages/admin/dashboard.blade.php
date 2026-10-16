@@ -2,16 +2,7 @@
 
 @section('content')
     <div class="min-h-screen bg-cream-50">
-        <header class="border-b border-forest-950/10 bg-white">
-            <div class="site-container flex min-h-20 items-center justify-between gap-5">
-                <a href="{{ route('admin.dashboard') }}" class="brand-mark" aria-label="BIIK FarmSuite {{ __('biik.admin_ui.dashboard') }}">
-                    <span class="grid h-10 w-10 place-items-center rounded-xl bg-forest-900 text-sm font-extrabold text-white">B</span>
-                    <span class="leading-tight"><span class="block text-base font-extrabold">BIIK</span><span class="block text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-forest-800">{{ __('biik.roles.admin') }}</span></span>
-                </a>
-                <form method="POST" action="{{ route('logout') }}">@csrf<button type="submit" class="button button-outline !px-5 !py-2.5">{{ __('biik.admin_ui.logout') }}</button></form>
-            </div>
-        </header>
-        <section class="site-container py-14 sm:py-20">
+        <section class="site-container py-8 sm:py-10">
             <p class="eyebrow">{{ __('biik.admin_ui.portal') }}</p>
             <h1 class="mt-4 text-4xl font-semibold tracking-tight text-forest-950">{{ __('biik.admin_ui.farm_admin') }}</h1>
             <p class="mt-3 max-w-2xl leading-7 text-forest-800/75">{{ __('biik.admin_ui.dashboard_intro') }}</p>

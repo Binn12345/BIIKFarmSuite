@@ -1,11 +1,5 @@
 <div class="min-h-screen bg-cream-50">
-    <header class="border-b border-forest-950/10 bg-white">
-        <div class="site-container flex min-h-20 items-center justify-between gap-5">
-            <a href="{{ route('dashboard') }}" class="brand-mark"><span class="grid h-10 w-10 place-items-center rounded-xl bg-forest-900 text-sm font-extrabold text-white">B</span><span class="font-extrabold">BIIK <span class="font-normal">{{ $catalog['title'] }}</span></span></a>
-            <a href="{{ route('dashboard') }}" class="button button-outline !px-5 !py-2.5">{{ __('biik.pen_page.dashboard') }}</a>
-        </div>
-    </header>
-    <section class="site-container py-12 sm:py-16">
+    <section class="site-container py-8 sm:py-10">
         <p class="eyebrow">{{ __('biik.farmsuite_workspace') }}</p>
         <div class="mt-3 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
             <div><h1 class="text-3xl font-semibold tracking-tight text-forest-950 sm:text-4xl">{{ $catalog['title'] }}</h1><p class="mt-2 text-forest-800/75">{{ $catalog['description'] }}</p></div>

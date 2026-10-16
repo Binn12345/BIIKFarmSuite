@@ -580,6 +580,175 @@
     text-underline-offset: 3px;
 }
 
+[data-theme-background] {
+    --theme-page: #f1f4f8;
+    --theme-surface: #ffffff;
+    --theme-surface-muted: #e9eef4;
+    --theme-border: #d5dee8;
+    --theme-text: #1b2d42;
+    --theme-muted: #52657a;
+    --theme-accent: #2563eb;
+    --theme-accent-strong: #1d4ed8;
+    --theme-accent-soft: #e8efff;
+}
+
+[data-theme-background='clean-white'] {
+    --theme-page: #f8fafc;
+    --theme-surface: #ffffff;
+    --theme-surface-muted: #f1f5f9;
+    --theme-border: #dce3eb;
+}
+
+[data-theme-background='cool-gray'] {
+    --theme-page: #e9eef3;
+    --theme-surface: #f8fafc;
+    --theme-surface-muted: #e2e8f0;
+    --theme-border: #cbd5e1;
+}
+
+[data-theme-accent='teal'] {
+    --theme-accent: #0f766e;
+    --theme-accent-strong: #115e59;
+    --theme-accent-soft: #dff5f1;
+}
+
+[data-theme-accent='purple'] {
+    --theme-accent: #7c3aed;
+    --theme-accent-strong: #6d28d9;
+    --theme-accent-soft: #f0eaff;
+}
+
+body[data-theme-background] {
+    background-color: var(--theme-page);
+    color: var(--theme-text);
+}
+
+body[data-theme-background] .bg-cream-50,
+body[data-theme-background] .hero-section,
+body[data-theme-background] .login-page {
+    background-color: var(--theme-page);
+    background-image: none;
+}
+
+body[data-theme-background] .bg-white,
+body[data-theme-background] .feature-card,
+body[data-theme-background] .login-card,
+body[data-theme-background] .workspace-card,
+body[data-theme-background] .analytics-card,
+body[data-theme-background] .analytics-panel {
+    background-color: var(--theme-surface);
+}
+
+body[data-theme-background] .bg-cream-100,
+body[data-theme-background] .bg-cream-200 {
+    background-color: var(--theme-surface-muted);
+}
+
+body[data-theme-background] .form-input,
+body[data-theme-background] select,
+body[data-theme-background] textarea,
+body[data-theme-background] input:not([type='checkbox']):not([type='radio']):not([type='file']) {
+    border-color: var(--theme-border);
+    background-color: var(--theme-surface);
+    color: var(--theme-text);
+}
+
+body[data-theme-background] .form-input::placeholder {
+    color: var(--theme-muted);
+}
+
+body[data-theme-background] .border-forest-950\/10,
+body[data-theme-background] .border-forest-950\/15,
+body[data-theme-background] .border-forest-950\/20,
+body[data-theme-background] .feature-card,
+body[data-theme-background] .login-card,
+body[data-theme-background] .analytics-card,
+body[data-theme-background] .analytics-panel {
+    border-color: var(--theme-border);
+}
+
+body[data-theme-background] .text-forest-950,
+body[data-theme-background] .text-forest-900,
+body[data-theme-background] .feature-card h3,
+body[data-theme-background] .form-label,
+body[data-theme-background] .brand-mark {
+    color: var(--theme-text);
+}
+
+body[data-theme-background] .text-forest-800,
+body[data-theme-background] .text-forest-800\/75,
+body[data-theme-background] .text-forest-800\/70,
+body[data-theme-background] .text-forest-800\/65,
+body[data-theme-background] .text-forest-700,
+body[data-theme-background] .feature-card p,
+body[data-theme-background] .analytics-card p,
+body[data-theme-background] .analytics-panel p {
+    color: var(--theme-muted);
+}
+
+body[data-theme-background] .bg-forest-900,
+body[data-theme-background] .bg-forest-950,
+body[data-theme-background] .button-primary {
+    background-color: var(--theme-accent);
+}
+
+body[data-theme-background] .button-primary:hover,
+body[data-theme-background] .hover\:bg-forest-950:hover {
+    background-color: var(--theme-accent-strong);
+}
+
+body[data-theme-background] .text-forest-950,
+body[data-theme-background] .text-forest-900,
+body[data-theme-background] .text-forest-800,
+body[data-theme-background] .border-forest-700 {
+    --tw-ring-color: var(--theme-accent);
+}
+
+body[data-theme-background] .bg-forest-900\/10,
+body[data-theme-background] .feature-icon-green {
+    background-color: var(--theme-accent-soft);
+}
+
+body[data-theme-background] .text-forest-800,
+body[data-theme-background] .text-forest-700,
+body[data-theme-background] .nav-link,
+body[data-theme-background] .button-secondary,
+body[data-theme-background] .button-outline {
+    color: var(--theme-accent-strong);
+}
+
+body[data-theme-background] .button-secondary,
+body[data-theme-background] .button-outline {
+    border-color: color-mix(in srgb, var(--theme-accent) 32%, transparent);
+}
+
+body[data-theme-background] :focus-visible {
+    outline-color: var(--theme-accent);
+}
+
+body[data-theme-background] .form-input:focus {
+    border-color: var(--theme-accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--theme-accent) 18%, transparent);
+}
+
+body[data-theme-background] .form-checkbox {
+    accent-color: var(--theme-accent);
+}
+
+.analytics-card,
+.analytics-panel {
+    color: var(--theme-text, #1b2d42);
+}
+
+.chart-grid {
+    stroke: var(--theme-border, #d5dee8);
+}
+
+.chart-label {
+    fill: var(--theme-muted, #52657a);
+    font-size: 11px;
+}
+
 @media (min-width: 640px) {
     .site-container {
         width: min(100% - 4rem, 76rem);

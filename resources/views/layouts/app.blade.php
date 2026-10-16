@@ -9,13 +9,24 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
 </head>
-<body class="min-h-screen bg-cream-50 font-sans text-forest-950 antialiased">
+    @php
+        $savedBackground = auth()->user()?->theme_background ?? session('theme_background');
+        $savedAccent = auth()->user()?->theme_accent ?? session('theme_accent');
+        $themeBackground = in_array($savedBackground, ['soft-neutral', 'clean-white', 'cool-gray'], true) ? $savedBackground : 'soft-neutral';
+        $themeAccent = in_array($savedAccent, ['blue', 'teal', 'purple'], true) ? $savedAccent : 'blue';
+    @endphp
+    <body
+        class="min-h-screen bg-cream-50 font-sans text-forest-950 antialiased"
+        data-theme-background="{{ $themeBackground }}"
+        data-theme-accent="{{ $themeAccent }}"
+    x-on:theme-updated.window="document.body.dataset.themeBackground = $event.detail.background; document.body.dataset.themeAccent = $event.detail.accent"
+>
     <a href="#main-content" class="skip-link">Skip to content</a>
     @auth
         @php($navigationModules = \App\Support\DashboardModules::for(auth()->user()))
         @php($currentUser = auth()->user())
         @php($hasNavigationPicture = $currentUser->newQuery()->whereKey($currentUser->id)->whereNotNull('profile_picture')->exists())
-        <div x-data="{ sidebarOpen: false }" @keydown.escape.window="sidebarOpen = false" x-init="$watch('sidebarOpen', value => { document.body.classList.toggle('overflow-hidden', value); if (value) $nextTick(() => $refs.closeSidebar.focus()); else $refs.openSidebar.focus() })">
+        <div x-data="{ sidebarOpen: false, accountMenuOpen: false }" @keydown.escape.window="sidebarOpen = false; if (accountMenuOpen) { accountMenuOpen = false; $refs.accountTrigger.focus() }" x-init="$watch('sidebarOpen', value => { document.body.classList.toggle('overflow-hidden', value); if (value) $nextTick(() => $refs.closeSidebar.focus()); else $refs.openSidebar.focus() })">
             <header class="sticky top-0 z-40 border-b border-forest-950/10 bg-white">
                 <div class="site-container flex min-h-16 items-center justify-between gap-3">
                     <div class="flex items-center gap-3">
@@ -23,26 +34,24 @@
                         <a href="{{ route('dashboard') }}" class="brand-mark font-extrabold">BIIK <span class="font-normal">FarmSuite</span></a>
                     </div>
                     <div class="flex items-center gap-2 sm:gap-4">
-                        <form method="POST" action="{{ route('locale.switch') }}" class="flex items-center gap-2">
-                            @csrf
-                            <label for="locale-select" class="sr-only">{{ __('biik.language') }}</label>
-                            <select id="locale-select" name="locale" onchange="this.form.submit()" class="rounded-lg border border-forest-950/15 bg-white px-2 py-2 text-sm text-forest-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-forest-700" aria-label="{{ __('biik.language') }}">
-                                <option value="en" @selected(app()->getLocale() === 'en')>English</option>
-                                <option value="fil" @selected(app()->getLocale() === 'fil')>Filipino</option>
-                            </select>
-                        </form>
-                        <a href="{{ route('account.profile') }}" class="inline-flex items-center gap-2 rounded-xl px-2 py-1.5 text-sm font-semibold text-forest-900 hover:bg-cream-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-forest-700">
+                        <div class="relative" @click.outside="accountMenuOpen = false">
+                            <button x-ref="accountTrigger" type="button" @click="accountMenuOpen = !accountMenuOpen" @keydown.escape.stop="accountMenuOpen = false" class="inline-flex h-11 w-11 items-center justify-center rounded-full text-sm font-bold text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2" aria-haspopup="true" :aria-expanded="accountMenuOpen.toString()" aria-label="{{ __('biik.account_menu') }}">
                             @if ($hasNavigationPicture)
                                 <img src="{{ route('users.profile-picture', $currentUser->id) }}" alt="" class="h-9 w-9 rounded-full object-cover">
                             @else
                                 <span class="grid h-9 w-9 place-items-center rounded-full bg-forest-900 text-xs font-bold text-white" aria-hidden="true">{{ collect(explode(' ', $currentUser->name))->map(fn ($part) => mb_substr($part, 0, 1))->take(2)->implode('') }}</span>
                             @endif
-                            <span class="hidden sm:inline">{{ __('biik.profile') }}</span>
-                        </a>
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
-                            <button type="submit" class="rounded-xl px-2 py-2 text-sm font-semibold text-pig-500 hover:bg-cream-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-pig-500 sm:px-3">{{ __('biik.sign_out') }}</button>
-                        </form>
+                            <span class="sr-only">{{ __('biik.account_menu') }}</span>
+                            </button>
+                            <div x-cloak x-show="accountMenuOpen" x-transition.origin.top.right class="absolute right-0 z-50 mt-2 w-[min(16rem,calc(100vw-2rem))] overflow-hidden rounded-xl border border-forest-950/10 bg-white py-2 shadow-xl" @keydown.escape.stop="accountMenuOpen = false; $refs.accountTrigger.focus()">
+                                <a href="{{ route('account.profile') }}" @click="accountMenuOpen = false" class="block px-4 py-3 text-sm font-semibold text-forest-950 hover:bg-cream-100 focus-visible:bg-cream-100">{{ __('biik.my_profile') }}</a>
+                                <a href="{{ route('account.settings') }}" @click="accountMenuOpen = false" class="block px-4 py-3 text-sm font-semibold text-forest-950 hover:bg-cream-100 focus-visible:bg-cream-100">{{ __('biik.settings') }}</a>
+                                <form method="POST" action="{{ route('logout') }}">
+                                    @csrf
+                                    <button type="submit" @click="accountMenuOpen = false" class="block w-full px-4 py-3 text-left text-sm font-semibold text-pig-500 hover:bg-cream-100 focus-visible:bg-cream-100">{{ __('biik.sign_out') }}</button>
+                                </form>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </header>
@@ -75,14 +84,6 @@
         </div>
     @endauth
     @guest
-    <form method="POST" action="{{ route('locale.switch') }}" class="fixed bottom-4 right-4 z-50 flex items-center gap-2 rounded-xl border border-forest-950/10 bg-white/95 p-2 shadow-sm">
-        @csrf
-        <label for="guest-locale" class="sr-only">{{ __('biik.language') }}</label>
-        <select id="guest-locale" name="locale" onchange="this.form.submit()" class="rounded-lg border-0 bg-transparent px-2 py-1 text-sm text-forest-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-forest-700" aria-label="{{ __('biik.language') }}">
-            <option value="en" @selected(app()->getLocale() === 'en')>English</option>
-            <option value="fil" @selected(app()->getLocale() === 'fil')>Filipino</option>
-        </select>
-    </form>
     <main id="main-content">
         @yield('content')
         {{ $slot ?? '' }}
