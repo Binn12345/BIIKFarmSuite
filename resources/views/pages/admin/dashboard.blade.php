@@ -15,7 +15,7 @@
             <p class="eyebrow">Administrator portal</p>
             <h1 class="mt-4 text-4xl font-semibold tracking-tight text-forest-950">FarmSuite administration</h1>
             <p class="mt-3 max-w-2xl leading-7 text-forest-800/75">Manage user access and configure the farm modules available to basic-user roles.</p>
-            <div class="mt-9 grid gap-4 sm:grid-cols-2">
+            <div class="mt-9 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <a href="{{ route('admin.users') }}" class="feature-card block">
                     <span class="feature-icon feature-icon-green" aria-hidden="true">U</span>
                     <h2 class="mt-4 text-lg font-semibold text-forest-950">User management</h2>
@@ -25,6 +25,16 @@
                     <span class="feature-icon feature-icon-pink" aria-hidden="true">R</span>
                     <h2 class="mt-4 text-lg font-semibold text-forest-950">Roles and permissions</h2>
                     <p>Configure module-level access for the basic-user role and other non-admin roles.</p>
+                </a>
+                <a href="{{ route('admin.permissions') }}" class="feature-card block">
+                    <span class="feature-icon feature-icon-cream" aria-hidden="true">P</span>
+                    <h2 class="mt-4 text-lg font-semibold text-forest-950">Permission catalog</h2>
+                    <p>Review every supported module and action permission.</p>
+                </a>
+                <a href="{{ route('admin.audit-logs') }}" class="feature-card block">
+                    <span class="feature-icon feature-icon-pink" aria-hidden="true">A</span>
+                    <h2 class="mt-4 text-lg font-semibold text-forest-950">Audit trail</h2>
+                    <p>Search and review authentication and access-control events.</p>
                 </a>
             </div>
             <div class="mt-8 rounded-2xl border border-forest-950/10 bg-white p-6">

@@ -31,7 +31,7 @@
             <div class="overflow-x-auto">
                 <table class="w-full min-w-[48rem] text-left text-sm">
                     <thead class="bg-cream-100 text-xs uppercase tracking-wider text-forest-800">
-                        <tr><th class="px-5 py-4">User</th><th class="px-5 py-4">Roles</th><th class="px-5 py-4">Status</th><th class="px-5 py-4">Actions</th></tr>
+                        <tr><th class="px-5 py-4">User</th><th class="px-5 py-4">Roles</th><th class="px-5 py-4">Effective permissions</th><th class="px-5 py-4">Status</th><th class="px-5 py-4">Actions</th></tr>
                     </thead>
                     <tbody class="divide-y divide-forest-950/10">
                         @forelse ($users as $user)
@@ -41,30 +41,33 @@
                                     @forelse ($user->roles as $role)
                                         <span class="mr-1 inline-flex items-center gap-2 rounded-full bg-cream-100 px-2.5 py-1 text-xs font-semibold text-forest-800">
                                             {{ $role->name }}
-                                            @if ($role->name !== 'admin')
-                                                <button type="button" wire:click="revokeRole({{ $user->id }}, '{{ $role->name }}')" class="font-bold text-pig-500" aria-label="Revoke {{ $role->name }} role from {{ $user->name }}">×</button>
+                                            @if (! in_array($role->name, ['admin', 'super-admin'], true))
+                                                <button type="button" wire:click="revokeRole({{ $user->id }}, '                                                {{ ucwords(str_replace('-', ' ', $role->name)) }}')" wire:confirm="Revoke this role from the user?" class="font-bold text-pig-500" aria-label="Revoke {{ $role->name }} role from {{ $user->name }}">×</button>
                                             @endif
                                         </span>
                                     @empty
                                         <span class="text-forest-800/60">No roles</span>
                                     @endforelse
-                                    @if (! $user->hasRole('admin'))
-                                        <button type="button" wire:click="assignRole({{ $user->id }})" class="ml-2 text-xs font-semibold text-forest-800 underline underline-offset-4">Assign selected role</button>
+                                    @if (! $user->hasAnyRole(['admin', 'super-admin']))
+                                        <button type="button" wire:click="assignRole({{ $user->id }})" wire:confirm="Assign the selected role to this user?" class="ml-2 text-xs font-semibold text-forest-800 underline underline-offset-4">Assign selected role</button>
                                     @endif
+                                </td>
+                                <td class="max-w-xs px-5 py-4 text-xs leading-5 text-forest-800/75">
+                                    {{ $user->getAllPermissions()->pluck('name')->sort()->implode(', ') ?: 'None' }}
                                 </td>
                                 <td class="px-5 py-4">
                                     <span class="{{ $user->is_active ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800' }} rounded-full px-2.5 py-1 text-xs font-semibold">{{ $user->is_active ? 'Active' : 'Inactive' }}</span>
                                 </td>
                                 <td class="px-5 py-4">
-                                    @if (! $user->hasRole('admin') && $user->id !== auth()->id())
-                                        <button type="button" wire:click="toggleActive({{ $user->id }})" class="font-semibold text-forest-800 underline underline-offset-4">{{ $user->is_active ? 'Deactivate' : 'Activate' }}</button>
+                                    @if (! $user->hasAnyRole(['admin', 'super-admin']) && $user->id !== auth()->id())
+                                        <button type="button" wire:click="toggleActive({{ $user->id }})" wire:confirm="{{ $user->is_active ? 'Deactivate' : 'Activate' }} this account?" class="font-semibold text-forest-800 underline underline-offset-4">{{ $user->is_active ? 'Deactivate' : 'Activate' }}</button>
                                     @else
                                         <span class="text-xs text-forest-800/60">Protected account</span>
                                     @endif
                                 </td>
                             </tr>
                         @empty
-                            <tr><td colspan="4" class="px-5 py-10 text-center text-forest-800/70">No matching users.</td></tr>
+                            <tr><td colspan="5" class="px-5 py-10 text-center text-forest-800/70">No matching users.</td></tr>
                         @endforelse
                     </tbody>
                 </table>

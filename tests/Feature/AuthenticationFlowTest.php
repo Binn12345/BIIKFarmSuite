@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Livewire\Auth\Login;
 use App\Models\User;
+use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -17,6 +18,7 @@ class AuthenticationFlowTest extends TestCase
         parent::setUp();
 
         $this->withoutVite();
+        $this->seed(RolePermissionSeeder::class);
     }
 
     public function test_the_homepage_is_public_and_displays_the_public_sections(): void
@@ -52,11 +54,15 @@ class AuthenticationFlowTest extends TestCase
     public function test_authenticated_users_can_view_the_dashboard_and_are_redirected_from_login(): void
     {
         $user = User::factory()->create();
+        $user->assignRole('basic-user');
 
         $this->actingAs($user)
             ->get(route('dashboard'))
             ->assertOk()
-            ->assertSee('Your farm workspace is ready.');
+            ->assertSee('No modules are available yet')
+            ->assertSee('Basic User')
+            ->assertSee('My Profile')
+            ->assertSee('Log Out');
 
         $this->get(route('login'))
             ->assertRedirect(route('dashboard'));
@@ -126,5 +132,6 @@ class AuthenticationFlowTest extends TestCase
             ->assertRedirect(route('home'));
 
         $this->assertGuest();
+        $this->get(route('dashboard'))->assertRedirect(route('login'));
     }
 }

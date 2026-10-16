@@ -15,20 +15,46 @@
         <div class="mt-8 grid items-start gap-6 lg:grid-cols-[0.85fr_1.15fr]">
             <section class="rounded-2xl border border-forest-950/10 bg-white p-5">
                 <h2 class="font-semibold text-forest-950">Available roles</h2>
+                <label for="role-search" class="sr-only">Search roles</label>
+                <input id="role-search" type="search" wire:model.live.debounce.300ms="search" class="form-input mt-4" placeholder="Search roles">
                 <ul class="mt-4 divide-y divide-forest-950/10">
                     @foreach ($roles as $role)
                         <li class="flex items-center justify-between gap-3 py-3">
-                            <div><span class="block font-semibold text-forest-950">{{ $role->name }}</span><span class="text-xs text-forest-800/65">{{ $role->users()->count() }} assigned</span></div>
+                            <button type="button" wire:click="viewUsers({{ $role->id }})" class="text-left">
+                                <span class="block font-semibold text-forest-950">{{ in_array($role->name, ['admin', 'super-admin'], true) ? 'Super Admin' : ucwords(str_replace('-', ' ', $role->name)) }}</span>
+                                <span class="text-xs text-forest-800/65">{{ $role->users_count }} assigned · View users</span>
+                            </button>
                             <div class="flex items-center gap-3">
-                                <button type="button" wire:click="editRole({{ $role->id }})" class="text-sm font-semibold text-forest-800 underline underline-offset-4">Edit</button>
-                                @if ($role->name !== 'basic-user')
-                                    <button type="button" wire:click="deleteRole({{ $role->id }})" class="text-sm font-semibold text-red-700 underline underline-offset-4">Delete</button>
+                                @if (! in_array($role->name, ['admin', 'super-admin'], true))
+                                    <button type="button" wire:click="editRole({{ $role->id }})" class="text-sm font-semibold text-forest-800 underline underline-offset-4">Edit</button>
+                                @endif
+                                @if (! in_array($role->name, ['admin', 'super-admin', 'basic-user'], true))
+                                    <button type="button" wire:click="deleteRole({{ $role->id }})" wire:confirm="Delete this role? It can only be deleted when it has no assigned users." class="text-sm font-semibold text-red-700 underline underline-offset-4">Delete</button>
                                 @endif
                             </div>
                         </li>
                     @endforeach
                 </ul>
                 <button type="button" wire:click="createRole" class="button button-secondary mt-4 w-full">Create role</button>
+                @if ($selectedRole)
+                    <div class="mt-6 border-t border-forest-950/10 pt-5">
+                        <h3 class="font-semibold text-forest-950">Users with {{ in_array($selectedRole->name, ['admin', 'super-admin'], true) ? 'Super Admin' : ucwords(str_replace('-', ' ', $selectedRole->name)) }}</h3>
+                        <ul class="mt-3 space-y-3">
+                            @forelse ($selectedRole->users as $user)
+                                <li class="rounded-xl bg-cream-50 p-3">
+                                    <span class="block text-sm font-semibold text-forest-950">{{ $user->name }}</span>
+                                    <span class="text-xs text-forest-800/70">{{ $user->email }}</span>
+                                    <span class="mt-2 block text-xs leading-5 text-forest-800/75">
+                                        Effective permissions:
+                                        {{ $user->getAllPermissions()->pluck('name')->sort()->implode(', ') ?: 'None' }}
+                                    </span>
+                                </li>
+                            @empty
+                                <li class="text-sm text-forest-800/70">No users are assigned this role.</li>
+                            @endforelse
+                        </ul>
+                    </div>
+                @endif
             </section>
 
             <form wire:submit="saveRole" class="rounded-2xl border border-forest-950/10 bg-white p-5 sm:p-7">
@@ -43,15 +69,36 @@
                     <legend class="form-label">Farm module permissions</legend>
                     <div class="grid gap-3 sm:grid-cols-2">
                         @foreach ($modules as $slug => $module)
-                            <label for="permission-{{ $slug }}" class="flex cursor-pointer items-center gap-3 rounded-xl border border-forest-950/10 p-3 text-sm text-forest-800">
-                                <input id="permission-{{ $slug }}" type="checkbox" value="{{ $module['permission'] }}" wire:model="permissions" class="form-checkbox">
-                                {{ $module['label'] }}
-                            </label>
+                            <fieldset class="rounded-xl border border-forest-950/10 p-3">
+                                <div class="flex flex-wrap items-center justify-between gap-2">
+                                    <legend class="font-semibold text-forest-950">{{ $module['label'] }}</legend>
+                                    <div class="flex gap-3 text-xs">
+                                        <button type="button" wire:click="selectModule('{{ $slug }}')" class="font-semibold text-forest-800 underline underline-offset-4">Select all</button>
+                                        <button type="button" wire:click="clearModule('{{ $slug }}')" class="font-semibold text-forest-800 underline underline-offset-4">Deselect all</button>
+                                    </div>
+                                </div>
+                                <div class="mt-3 grid gap-2 sm:grid-cols-2">
+                                    @foreach ($module['permissions'] as $action => $permission)
+                                        <label for="permission-{{ $slug }}-{{ $action }}" class="flex cursor-pointer items-center gap-2 text-sm text-forest-800">
+                                            <input
+                                                id="permission-{{ $slug }}-{{ $action }}"
+                                                type="checkbox"
+                                                value="{{ $permission }}"
+                                                wire:model="permissions"
+                                                @disabled(in_array($permission, \App\Support\PermissionCatalog::protectedPermissions(), true))
+                                                class="form-checkbox"
+                                            >
+                                            <span>{{ $action }} <code class="text-xs text-forest-800/60">{{ $permission }}</code>@if (in_array($permission, \App\Support\PermissionCatalog::protectedPermissions(), true)) <span class="text-xs text-pig-500">admin only</span> @endif</span>
+                                        </label>
+                                    @endforeach
+                                </div>
+                            </fieldset>
                         @endforeach
                     </div>
-                    @error('permissions.*') <p class="form-error" role="alert">{{ $message }}</p> @enderror
-                </fieldset>
-                <button type="submit" class="button button-primary mt-6 w-full">Save role permissions</button>
+                        @error('permissions') <p class="form-error" role="alert">{{ $message }}</p> @enderror
+                        @error('permissions.*') <p class="form-error" role="alert">{{ $message }}</p> @enderror
+                    </fieldset>
+                    <button type="submit" wire:confirm="Save these role and permission changes?" class="button button-primary mt-6 w-full">Save role permissions</button>
             </form>
         </div>
     </section>

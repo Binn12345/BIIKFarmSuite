@@ -9,14 +9,13 @@ class FarmModules
      */
     public static function all(): array
     {
-        return [
-            'animals' => ['label' => 'Animal Management', 'permission' => 'animals.view'],
-            'breeding' => ['label' => 'Breeding and Farrowing', 'permission' => 'breeding.view'],
-            'piglets' => ['label' => 'Piglet Records', 'permission' => 'piglets.view'],
-            'sales' => ['label' => 'Farm Sales', 'permission' => 'sales.view'],
-            'expenses' => ['label' => 'Farm Expenses', 'permission' => 'expenses.view'],
-            'reports' => ['label' => 'Farm Reports', 'permission' => 'reports.view'],
-        ];
+        return collect(PermissionCatalog::modules())
+            ->filter(fn (array $module, string $key) => ! in_array($key, ['dashboard', 'users', 'roles', 'audit-logs'], true))
+            ->map(fn (array $module) => [
+                'label' => $module['label'],
+                'permission' => $module['permissions']['view'] ?? $module['permissions']['create'],
+            ])
+            ->all();
     }
 
     /**
@@ -24,6 +23,6 @@ class FarmModules
      */
     public static function permissions(): array
     {
-        return array_values(array_column(self::all(), 'permission'));
+        return PermissionCatalog::permissions();
     }
 }

@@ -1,0 +1,30 @@
+<div class="min-h-screen bg-cream-50">
+    <header class="border-b border-forest-950/10 bg-white"><div class="site-container flex min-h-20 items-center justify-between gap-5"><a href="{{ route('dashboard') }}" class="brand-mark"><span class="grid h-10 w-10 place-items-center rounded-xl bg-forest-900 text-sm font-extrabold text-white">B</span><span class="font-extrabold">BIIK <span class="font-normal">Farm Reports</span></span></a><a href="{{ route('dashboard') }}" class="button button-outline !px-5 !py-2.5">Dashboard</a></div></header>
+    <section class="site-container py-12 sm:py-16">
+        <p class="eyebrow">Reports</p><h1 class="mt-3 text-3xl font-semibold tracking-tight text-forest-950 sm:text-4xl">Farm Reports</h1><p class="mt-2 text-forest-800/75">Operational and financial summaries calculated from recorded farm data.</p>
+        <div class="mt-7 grid gap-4 rounded-2xl border border-forest-950/10 bg-white p-5 sm:grid-cols-3 sm:items-end">
+            <div><label for="report-from" class="form-label">From</label><input id="report-from" type="date" wire:model.live="from" class="form-input">@error('from')<p class="text-sm text-red-700">{{ $message }}</p>@enderror</div>
+            <div><label for="report-to" class="form-label">To</label><input id="report-to" type="date" wire:model.live="to" class="form-input">@error('to')<p class="text-sm text-red-700">{{ $message }}</p>@enderror</div>
+            <div><label for="report-type" class="form-label">Record type</label><select id="report-type" wire:model.live="module" class="form-input"><option value="">All dated records</option>@foreach (['piglets' => 'Piglets', 'breeding' => 'Breeding', 'farrowing' => 'Farrowing', 'health' => 'Health', 'feeding' => 'Feeding', 'mortality' => 'Mortality', 'inventory' => 'Inventory', 'purchases' => 'Purchases', 'sales' => 'Sales', 'expenses' => 'Expenses'] as $key => $label)<option value="{{ $key }}">{{ $label }}</option>@endforeach</select></div>
+            <button type="button" wire:click="exportCsv" class="button button-primary sm:col-span-3 sm:justify-self-start">Export CSV</button>
+        </div>
+        <div class="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <article class="feature-card !min-h-0"><h2 class="font-semibold">Animal inventory</h2><p class="mt-2 text-sm">Active {{ $animalCounts['active'] ?? 0 }} · Sold {{ $animalCounts['sold'] ?? 0 }} · Deceased {{ $animalCounts['deceased'] ?? 0 }}</p></article>
+            <article class="feature-card !min-h-0"><h2 class="font-semibold">Piglet registry</h2><p class="mt-2 text-sm">{{ $pigletCount }} piglet records</p></article>
+            <article class="feature-card !min-h-0"><h2 class="font-semibold">Breeding activity</h2><p class="mt-2 text-sm">{{ $breedingCount }} breeding records</p></article>
+            <article class="feature-card !min-h-0"><h2 class="font-semibold">Farrowing outcomes</h2><p class="mt-2 text-sm">Born {{ $farrowingOutcomes->total }} · Alive {{ $farrowingOutcomes->born_alive }} · Stillborn {{ $farrowingOutcomes->stillborn }}</p></article>
+            <article class="feature-card !min-h-0"><h2 class="font-semibold">Mortality events</h2><p class="mt-2 text-sm">{{ $mortalityCount }} records</p></article>
+            <article class="feature-card !min-h-0"><h2 class="font-semibold">Health records</h2><p class="mt-2 text-sm">{{ $healthCount }} records in range</p></article>
+            <article class="feature-card !min-h-0"><h2 class="font-semibold">Feed consumption</h2><p class="mt-2 text-sm">{{ number_format((float) $feedConsumed, 3) }} recorded units</p></article>
+            <article class="feature-card !min-h-0"><h2 class="font-semibold">Low-stock items</h2><p class="mt-2 text-sm">{{ $lowStock }} below configured threshold</p></article>
+            <article class="feature-card !min-h-0"><h2 class="font-semibold">Stock movement</h2><p class="mt-2 text-sm">{{ number_format((float) $stockMovements, 3) }} net units recorded in range</p></article>
+            <article class="feature-card !min-h-0"><h2 class="font-semibold">Financial totals</h2><p class="mt-2 text-sm">Sales revenue: {{ number_format((float) $salesRevenue, 2) }}<br>Received purchases: {{ number_format((float) $purchasesTotal, 2) }}<br>Expenses: {{ number_format((float) $expensesTotal, 2) }}<br><span class="text-xs">Revenue is not profit; costs are shown separately.</span></p></article>
+        </div>
+        <section class="mt-8 overflow-hidden rounded-2xl border border-forest-950/10 bg-white" aria-labelledby="report-record-list">
+            <div class="flex flex-col gap-3 border-b border-forest-950/10 p-5 sm:flex-row sm:items-center sm:justify-between"><h2 id="report-record-list" class="text-lg font-semibold">Dated records</h2><p class="text-sm text-forest-800/70">Filtered by the selected date range and type.</p></div>
+            <div class="overflow-x-auto"><table class="w-full min-w-[44rem] text-left text-sm"><thead class="bg-cream-100 text-xs uppercase tracking-wider text-forest-800"><tr><th class="px-5 py-4">Date</th><th class="px-5 py-4">Module</th><th class="px-5 py-4">Reference</th><th class="px-5 py-4">Description</th><th class="px-5 py-4">Amount</th><th class="px-5 py-4">Status</th></tr></thead><tbody class="divide-y divide-forest-950/10">
+                @forelse ($records as $record)<tr><td class="px-5 py-4">{{ $record->record_date?->format('M j, Y') }}</td><td class="px-5 py-4 capitalize">{{ str_replace('-', ' ', $record->module) }}</td><td class="px-5 py-4">{{ $record->reference ?: '—' }}</td><td class="px-5 py-4">{{ $record->title ?: $record->category ?: '—' }}</td><td class="px-5 py-4">{{ $record->amount !== null ? number_format((float) $record->amount, 2) : '—' }}</td><td class="px-5 py-4">{{ ucfirst($record->status) }}</td></tr>@empty<tr><td colspan="6" class="px-5 py-8 text-center text-forest-800/70">No records match this date range.</td></tr>@endforelse
+            </tbody></table></div><div class="border-t border-forest-950/10 px-5 py-4">{{ $records->links() }}</div>
+        </section>
+    </section>
+</div>

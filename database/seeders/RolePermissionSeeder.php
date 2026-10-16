@@ -14,12 +14,7 @@ class RolePermissionSeeder extends Seeder
     {
         app(PermissionRegistrar::class)->forgetCachedPermissions();
 
-        $permissionNames = [
-            'dashboard.view',
-            'users.manage',
-            'roles.manage',
-            ...FarmModules::permissions(),
-        ];
+        $permissionNames = FarmModules::permissions();
 
         $permissions = collect($permissionNames)
             ->map(fn (string $name) => Permission::firstOrCreate([
@@ -28,9 +23,18 @@ class RolePermissionSeeder extends Seeder
             ]));
 
         $admin = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
-        $admin->syncPermissions($permissions->values());
+        $admin->givePermissionTo($permissions->values());
 
-        $basicUser = Role::firstOrCreate(['name' => 'basic-user', 'guard_name' => 'web']);
-        $basicUser->givePermissionTo(Permission::findByName('dashboard.view', 'web'));
+        Role::firstOrCreate(['name' => 'basic-user', 'guard_name' => 'web'])
+            ->givePermissionTo(Permission::findByName('dashboard.view', 'web'));
+
+        foreach ([
+            'farm-supervisor',
+            'farm-staff',
+            'sales-staff',
+        ] as $roleName) {
+            Role::firstOrCreate(['name' => $roleName, 'guard_name' => 'web'])
+                ->givePermissionTo(Permission::findByName('dashboard.view', 'web'));
+        }
     }
 }

@@ -2,7 +2,9 @@
 
 namespace App\Livewire\Admin;
 
-use App\Support\FarmModules;
+use App\Services\AuditLogger;
+use App\Support\PermissionCatalog;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
@@ -16,6 +18,10 @@ class RoleManagement extends Component
     public ?int $editingRoleId = null;
 
     public string $name = '';
+
+    public string $search = '';
+
+    public ?int $selectedRoleId = null;
 
     /** @var list<string> */
     public array $permissions = [];
@@ -31,7 +37,7 @@ class RoleManagement extends Component
         $this->authorize('roles.manage');
 
         $role = Role::query()
-            ->where('name', '!=', 'admin')
+            ->whereNotIn('name', PermissionCatalog::privilegedRoleNames())
             ->findOrFail($roleId);
 
         $this->editingRoleId = $role->id;
@@ -39,13 +45,49 @@ class RoleManagement extends Component
         $this->permissions = $role->permissions()->pluck('name')->all();
     }
 
-    public function saveRole(): void
+    public function viewUsers(int $roleId): void
     {
         $this->authorize('roles.manage');
 
+        $role = Role::query()->findOrFail($roleId);
+
+        $this->selectedRoleId = $role->id;
+    }
+
+    public function selectModule(string $module): void
+    {
+        $this->authorize('permissions.manage');
+        $catalogModule = PermissionCatalog::modules()[$module] ?? abort(404);
+        $assignablePermissions = array_diff(
+            array_values($catalogModule['permissions']),
+            PermissionCatalog::protectedPermissions(),
+        );
+        $this->permissions = array_values(array_unique([
+            ...$this->permissions,
+            ...$assignablePermissions,
+        ]));
+    }
+
+    public function clearModule(string $module): void
+    {
+        $this->authorize('permissions.manage');
+        $catalogModule = PermissionCatalog::modules()[$module] ?? abort(404);
+        $this->permissions = array_values(array_diff(
+            $this->permissions,
+            array_values($catalogModule['permissions']),
+        ));
+    }
+
+    public function saveRole(): void
+    {
+        $this->authorize('roles.manage');
+        $this->authorize('permissions.manage');
+
         $role = $this->editingRoleId
-            ? Role::query()->where('name', '!=', 'admin')->findOrFail($this->editingRoleId)
+            ? Role::query()->whereNotIn('name', ['admin', 'super-admin'])->findOrFail($this->editingRoleId)
             : null;
+
+        $this->name = mb_strtolower(trim($this->name));
 
         if ($role?->name === 'basic-user' && $this->name !== 'basic-user') {
             $this->addError('name', 'The basic-user role name cannot be changed.');
@@ -53,7 +95,7 @@ class RoleManagement extends Component
             return;
         }
 
-        if ($this->name === 'admin' || ($this->name === 'basic-user' && ! $role)) {
+        if (in_array($this->name, PermissionCatalog::privilegedRoleNames(), true) || ($this->name === 'basic-user' && ! $role)) {
             $this->addError('name', 'This role name is reserved.');
 
             return;
@@ -69,11 +111,20 @@ class RoleManagement extends Component
                     ->where(fn ($query) => $query->where('guard_name', 'web'))
                     ->ignore($role?->id),
             ],
-            'permissions' => ['array'],
-            'permissions.*' => ['string', Rule::in(FarmModules::permissions())],
+            'permissions' => ['array', 'max:'.count(PermissionCatalog::permissions())],
+            'permissions.*' => ['string', Rule::in(PermissionCatalog::permissions())],
         ]);
 
+        if (array_intersect($validated['permissions'], PermissionCatalog::protectedPermissions()) !== []) {
+            $this->addError('permissions', 'Protected administration permissions can only be granted to the administrator role.');
+
+            return;
+        }
+
+        $creating = ! $role;
+        $previousName = $role?->name;
         $role ??= Role::create(['name' => $validated['name'], 'guard_name' => 'web']);
+        $previousPermissions = $role->permissions()->pluck('name')->all();
         if ($role->name !== 'basic-user') {
             $role->name = $validated['name'];
             $role->save();
@@ -85,8 +136,15 @@ class RoleManagement extends Component
                 ->whereIn('name', $validated['permissions'])
                 ->get(),
         );
+        app(AuditLogger::class)->record($creating ? 'role.created' : 'role.permissions.updated', $role, [
+            'role_name_before' => $previousName,
+            'role_name_after' => $role->name,
+            'permissions_before' => $previousPermissions,
+            'permissions_after' => $role->permissions()->pluck('name')->all(),
+        ]);
 
         $this->editingRoleId = $role->id;
+        $this->selectedRoleId = $role->id;
         $this->name = $role->name;
         $this->permissions = $role->permissions()->pluck('name')->all();
         session()->flash('status', 'Role permissions saved.');
@@ -97,7 +155,7 @@ class RoleManagement extends Component
         $this->authorize('roles.manage');
 
         $role = Role::query()
-            ->whereNotIn('name', ['admin', 'basic-user'])
+            ->whereNotIn('name', [...PermissionCatalog::privilegedRoleNames(), 'basic-user'])
             ->findOrFail($roleId);
 
         if ($role->users()->exists()) {
@@ -106,6 +164,10 @@ class RoleManagement extends Component
             return;
         }
 
+        app(AuditLogger::class)->record('role.deleted', $role, [
+            'role' => $role->name,
+            'permissions' => $role->permissions()->pluck('name')->all(),
+        ]);
         $role->delete();
         $this->reset('editingRoleId', 'name', 'permissions');
         session()->flash('status', 'Role deleted.');
@@ -113,9 +175,29 @@ class RoleManagement extends Component
 
     public function render()
     {
+        $this->authorize('roles.manage');
+
+        $roles = Role::query()
+            ->withCount('users')
+            ->when($this->search !== '', fn (Builder $query) => $query->where('name', 'like', '%'.$this->search.'%'))
+            ->orderByRaw("CASE WHEN name IN ('admin', 'super-admin') THEN 0 ELSE 1 END")
+            ->orderBy('name')
+            ->get();
+
+        $selectedRole = $this->selectedRoleId
+            ? Role::query()
+                ->with([
+                    'users' => fn ($query) => $query->select('users.id', 'users.name', 'users.email'),
+                    'users.roles.permissions',
+                    'users.permissions',
+                ])
+                ->find($this->selectedRoleId)
+            : null;
+
         return view('livewire.admin.roles', [
-            'roles' => Role::query()->with('permissions')->where('name', '!=', 'admin')->orderBy('name')->get(),
-            'modules' => FarmModules::all(),
+            'roles' => $roles,
+            'selectedRole' => $selectedRole,
+            'modules' => PermissionCatalog::modules(),
         ])->layout('layouts.app', ['title' => 'Role and permission management']);
     }
 }
